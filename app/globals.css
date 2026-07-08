@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-sans), sans-serif;
+  --font-display: var(--font-display), sans-serif;
+  
+  --color-colgate-red: #E11B22;
+  --color-colgate-dark-red: #B01015;
+  --color-colgate-blue: #004B87;
+  --color-colgate-light-blue: #F0F6FF;
+  --color-colgate-teal: #00A3A6;
+}
+
+@layer base {
+  /* Hide standard scrollbars for a cleaner mobile app appearance */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Custom glowing and pulsing animations for investment elements */
+@keyframes pulse-gold {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s infinite ease-in-out;
+}
+
+@keyframes text-shine {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.text-shine {
+  background: linear-gradient(to right, #E11B22, #FF7B80, #004B87, #E11B22);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shine 5s infinite linear;
+}
+

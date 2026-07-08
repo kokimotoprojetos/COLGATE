@@ -1,0 +1,6 @@
+{
+  "name": "Investimentos Colgate",
+  "description": "Plataforma premium de investimentos inspirada na Colgate, unindo cuidados bucais a rendimentos financeiros diários.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
