@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     username TEXT NOT NULL,
-    balance NUMERIC(15, 2) DEFAULT 10.00,
+    balance NUMERIC(15, 2) DEFAULT 13.00,
     total_recharge NUMERIC(15, 2) DEFAULT 0.00,
     total_withdrawal NUMERIC(15, 2) DEFAULT 0.00,
     total_income NUMERIC(15, 2) DEFAULT 0.00,
@@ -88,7 +88,7 @@ BEGIN
   VALUES (
     new.id,
     COALESCE(new.raw_user_meta_data->>'username', 'Investidor Colgate'),
-    10.00,
+    13.00,
     0.00,
     0.00,
     0.00,

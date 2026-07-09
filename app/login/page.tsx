@@ -91,7 +91,7 @@ export default function AuthPage() {
               {
                 id: user.id,
                 username: username,
-                balance: 10.00, // R$ 10.00 register bonus
+                balance: 13.00, // R$ 13.00 register bonus
                 total_recharge: 0.00,
                 total_withdrawal: 0.00,
                 total_income: 0.00,

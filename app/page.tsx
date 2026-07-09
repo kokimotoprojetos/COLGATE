@@ -53,8 +53,8 @@ const PLANS_CATALOG = [
     id: 'colgate-total-12',
     name: 'VIP 1',
     slogan: '',
-    price: 10.00,
-    dailyIncome: 0.50, // 5% daily
+    price: 25.00,
+    dailyIncome: 5.50, // 22% daily
     cycleDays: 30,
     color: 'from-red-500 to-rose-600',
     accentColor: '#E11B22',
@@ -68,7 +68,7 @@ const PLANS_CATALOG = [
     name: 'VIP 2',
     slogan: '',
     price: 50.00,
-    dailyIncome: 3.00, // 6% daily
+    dailyIncome: 11.00, // 22% daily
     cycleDays: 30,
     color: 'from-blue-600 to-sky-500',
     accentColor: '#004B87',
@@ -82,7 +82,7 @@ const PLANS_CATALOG = [
     name: 'VIP 3',
     slogan: '',
     price: 150.00,
-    dailyIncome: 10.50, // 7% daily
+    dailyIncome: 33.00, // 22% daily
     cycleDays: 30,
     color: 'from-teal-500 to-emerald-400',
     accentColor: '#00A3A6',
@@ -96,7 +96,7 @@ const PLANS_CATALOG = [
     name: 'VIP 4',
     slogan: '',
     price: 500.00,
-    dailyIncome: 40.00, // 8% daily
+    dailyIncome: 110.00, // 22% daily
     cycleDays: 30,
     color: 'from-purple-600 to-indigo-500',
     accentColor: '#6D28D9',
@@ -110,7 +110,7 @@ const PLANS_CATALOG = [
     name: 'VIP 5',
     slogan: '',
     price: 1500.00,
-    dailyIncome: 150.00, // 10% daily
+    dailyIncome: 330.00, // 22% daily
     cycleDays: 30,
     color: 'from-amber-500 to-yellow-600',
     accentColor: '#D97706',
@@ -522,8 +522,8 @@ export default function ColgateInvestApp() {
   // Simulating Deposit (Recharge) flow
   const handleConfirmRechargeRequest = async () => {
     const amt = parseFloat(rechargeAmount);
-    if (isNaN(amt) || amt < 10) {
-      triggerToast('O valor mínimo para recarga é R$ 10,00', 'error');
+    if (isNaN(amt) || amt < 25) {
+      triggerToast('O valor mínimo para recarga é R$ 25,00', 'error');
       return;
     }
 
@@ -1316,15 +1316,15 @@ export default function ColgateInvestApp() {
                 </h3>
                 <ul className="text-xs space-y-2 text-slate-600">
                   <li className="flex justify-between">
-                    <span>Nível 1 (Indicação Direta):</span>
-                    <span className="font-bold text-colgate-red">10% de Bônus</span>
+                    <span>Nível 1 (🥇 Indicação Direta):</span>
+                    <span className="font-bold text-colgate-red">23% de Bônus</span>
                   </li>
                   <li className="flex justify-between border-t border-slate-100 pt-2">
-                    <span>Nível 2 (Indicação do seu Indicado):</span>
-                    <span className="font-bold text-slate-700">3% de Bônus</span>
+                    <span>Nível 2 (🥈 Indicação do seu Indicado):</span>
+                    <span className="font-bold text-slate-700">4% de Bônus</span>
                   </li>
                   <li className="flex justify-between border-t border-slate-100 pt-2">
-                    <span>Nível 3:</span>
+                    <span>Nível 3 (🥉):</span>
                     <span className="font-bold text-slate-500">1% de Bônus</span>
                   </li>
                 </ul>
