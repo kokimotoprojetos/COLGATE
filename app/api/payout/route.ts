@@ -37,6 +37,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields: amount, pixKey, pixType' }, { status: 400 });
     }
 
+    // ── Security: verify the transaction belongs to the user ──────────────
+    if (transactionId && userId) {
+      const { data: txCheck, error: txCheckErr } = await supabaseAdmin
+        .from('transactions')
+        .select('user_id, status, type')
+        .eq('id', transactionId)
+        .single();
+
+      if (txCheckErr || !txCheck) {
+        return NextResponse.json({ error: 'Transação não encontrada' }, { status: 404 });
+      }
+      if (txCheck.user_id !== userId) {
+        console.warn(`Security: payout attempt for transaction ${transactionId} by wrong user ${userId}`);
+        return NextResponse.json({ error: 'Não autorizado' }, { status: 403 });
+      }
+      if (txCheck.type !== 'withdrawal') {
+        return NextResponse.json({ error: 'Tipo de transação inválido' }, { status: 400 });
+      }
+    }
+
+
     const lytronPixType = mapPixType(pixType);
 
     const payload = {
