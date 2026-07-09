@@ -23,55 +23,56 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(request: Request) {
+  // ==== Segurança ==== //
+  // 1. CORS - permite somente nosso domínio
+  const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL || '*';
+  const origin = request.headers.get('origin') || '';
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Methods': 'POST,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+  };
+
+  // Helper para respostas JSON padrão (inclui CORS e Content-Type)
+  const jsonResponse = (payload: any, status: number = 200) => {
+    const headers = {
+      'Content-Type': 'application/json',
+      ...corsHeaders,
+    } as any;
+    return new Response(JSON.stringify(payload), { status, headers });
+  };
+
+  // 2. Rate limiting simples (5 req/min por IP)
+  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+  // Global map stored on module level (persist across invocations in Vercel Edge)
+  // Use a simple in‑memory map for rate limiting; cast to any to avoid TS errors
+  if ((global as any).rateLimiter === undefined) {
+    (global as any).rateLimiter = new Map();
+  }
+  const limiter = (global as any).rateLimiter;
+  const now = Date.now();
+  const windowMs = 60 * 1000; // 1 min
+  const max = 5;
+  let entry = limiter.get(ip);
+  if (!entry) {
+    entry = { count: 1, start: now };
+    limiter.set(ip, entry);
+  } else {
+    if (now - entry.start > windowMs) {
+      entry.count = 1;
+      entry.start = now;
+    } else {
+      entry.count++;
+    }
+  }
+  if (entry.count > max) {
+    return new Response(JSON.stringify({ error: 'Too many requests' }), { status: 429, headers: corsHeaders });
+  }
 
   try {
     const body = await request.json();
     const { action, params } = body;
 
-    // ==== Segurança ==== //
-    // 1. CORS - permite somente nosso domínio
-    const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL || '*';
-    const origin = request.headers.get('origin') || '';
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': allowedOrigin,
-      'Access-Control-Allow-Methods': 'POST,OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-    };
-
-    // 2. Rate limiting simples (5 req/min por IP)
-    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-    // Global map stored on module level (persist across invocations in Vercel Edge)
-    if (global.rateLimiter === undefined) {
-      global.rateLimiter = new Map();
-    }
-    const limiter = global.rateLimiter;
-    const now = Date.now();
-    const windowMs = 60 * 1000; // 1 min
-    const max = 5;
-    let entry = limiter.get(ip);
-    if (!entry) {
-      entry = { count: 1, start: now };
-      limiter.set(ip, entry);
-    } else {
-      if (now - entry.start > windowMs) {
-        entry.count = 1;
-        entry.start = now;
-      } else {
-        entry.count++;
-      }
-    }
-    if (entry.count > max) {
-      return new Response(JSON.stringify({ error: 'Too many requests' }), { status: 429, headers: corsHeaders });
-    }
-
-    // Helper para respostas JSON padrão (inclui CORS e Content-Type)
-    const jsonResponse = (payload: any, status: number = 200) => {
-      const headers = {
-        'Content-Type': 'application/json',
-        ...corsHeaders,
-      } as any;
-      return new Response(JSON.stringify(payload), { status, headers });
-    };
     // 3. Verificação de token ADMIN_TOKEN (preferencial)
     const adminToken = process.env.ADMIN_TOKEN;
     const authHeader = request.headers.get('authorization') || '';
