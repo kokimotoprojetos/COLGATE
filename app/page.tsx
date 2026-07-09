@@ -425,8 +425,9 @@ export default function ColgateInvestApp() {
         const res = await fetch(`/api/pix-status?txid=${currentTxId}`);
         const data = await res.json();
         
-        const chargeStatus = data.status || (data.charge && data.charge.status) || '';
-        if (chargeStatus === 'paid' || chargeStatus === 'completed') {
+const rawStatus = data.status || (data.charge && data.charge.status) || '';
+const chargeStatus = typeof rawStatus === 'string' ? rawStatus.toLowerCase() : '';
+if (chargeStatus === 'paid' || chargeStatus === 'completed') {
           clearInterval(pollInterval);
           if (isSubscribed) {
             handleRechargeSuccess(parseFloat(rechargeAmount));
