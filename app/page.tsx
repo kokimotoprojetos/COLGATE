@@ -966,7 +966,12 @@ export default function ColgateInvestApp() {
                   className="flex flex-col items-center gap-1.5 text-center group"
                 >
                   <div className="w-12 h-12 rounded-full bg-red-50 text-colgate-red flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-                    <ArrowDownLeft className="w-6 h-6" />
+                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
+                      <rect x="6" y="14" width="36" height="24" rx="4" fill="#E11B22" fillOpacity="0.15" stroke="#E11B22" strokeWidth="3" />
+                      <circle cx="32" cy="26" r="4" fill="#004B87" />
+                      <path d="M12 20H22M12 26H18" stroke="#E11B22" strokeWidth="3" strokeLinecap="round" />
+                      <path d="M26 12L32 6L38 12" stroke="#FBBF24" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </div>
                   <span className="text-[11px] font-bold text-slate-700">Recarregar</span>
                 </button>
@@ -976,7 +981,12 @@ export default function ColgateInvestApp() {
                   className="flex flex-col items-center gap-1.5 text-center group"
                 >
                   <div className="w-12 h-12 rounded-full bg-blue-50 text-colgate-blue flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-                    <ArrowUpRight className="w-6 h-6" />
+                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
+                      <rect x="6" y="14" width="36" height="24" rx="4" fill="#004B87" fillOpacity="0.15" stroke="#004B87" strokeWidth="3" />
+                      <circle cx="16" cy="26" r="4" fill="#E11B22" />
+                      <path d="M26 20H36M30 26H36" stroke="#004B87" strokeWidth="3" strokeLinecap="round" />
+                      <path d="M38 12L32 6L26 12" stroke="#FBBF24" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </div>
                   <span className="text-[11px] font-bold text-slate-700">Sacar</span>
                 </button>
@@ -986,7 +996,13 @@ export default function ColgateInvestApp() {
                   className="flex flex-col items-center gap-1.5 text-center group"
                 >
                   <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-                    <Headphones className="w-6 h-6" />
+                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
+                      <circle cx="24" cy="24" r="16" fill="#10B981" fillOpacity="0.15" />
+                      <path d="M15 28C15 20 17 14 24 14C31 14 33 20 33 28" stroke="#10B981" strokeWidth="3" strokeLinecap="round"/>
+                      <rect x="11" y="24" width="5" height="9" rx="2" fill="#E11B22" />
+                      <rect x="32" y="24" width="5" height="9" rx="2" fill="#E11B22" />
+                      <path d="M13 31C13 36 17 38 21 38H23" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round"/>
+                    </svg>
                   </div>
                   <span className="text-[11px] font-bold text-slate-700">Suporte AI</span>
                 </button>
@@ -996,7 +1012,12 @@ export default function ColgateInvestApp() {
                   className="flex flex-col items-center gap-1.5 text-center group"
                 >
                   <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-                    <Package className="w-6 h-6" />
+                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
+                      <path d="M6 16L24 7L42 16V32L24 41L6 32V16Z" fill="#F59E0B" fillOpacity="0.15" />
+                      <path d="M24 7L6 16L24 25L42 16L24 7Z" stroke="#F59E0B" strokeWidth="3" strokeLinejoin="round"/>
+                      <path d="M6 16V32L24 41M42 16V32L24 41" stroke="#F59E0B" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round"/>
+                      <path d="M24 25V41" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
+                    </svg>
                   </div>
                   <span className="text-[11px] font-bold text-slate-700">Meus Planos</span>
                 </button>
@@ -1674,7 +1695,13 @@ export default function ColgateInvestApp() {
           onClick={() => setActiveTab('home')}
           className={`flex flex-col items-center gap-1 text-center ${activeTab === 'home' ? 'text-colgate-red' : 'text-slate-400'}`}
         >
-          <Home className="w-5 h-5" />
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-5.5 h-5.5 transition-all ${activeTab === 'home' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`}>
+            <path d="M6 19.5L24 4.5L42 19.5V40.5C42 41.8807 40.8807 43 39.5 43H8.5C7.11929 43 6 41.8807 6 40.5V19.5Z" fill="#E11B22" fillOpacity="0.15" />
+            <path d="M24 4.5L6 19.5H14V41H34V19.5H42L24 4.5Z" stroke="#E11B22" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round"/>
+            <rect x="20" y="27" width="8" height="14" rx="1.5" fill="#004B87" />
+            <rect x="15" y="16" width="6" height="6" rx="1" fill="#FBBF24" />
+            <rect x="27" y="16" width="6" height="6" rx="1" fill="#FBBF24" />
+          </svg>
           <span className="text-[9px] font-extrabold uppercase tracking-tight">Início</span>
         </button>
 
@@ -1682,7 +1709,14 @@ export default function ColgateInvestApp() {
           onClick={() => setActiveTab('products')}
           className={`flex flex-col items-center gap-1 text-center ${activeTab === 'products' ? 'text-colgate-red' : 'text-slate-400'}`}
         >
-          <Package className="w-5 h-5" />
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-5.5 h-5.5 transition-all ${activeTab === 'products' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`}>
+            <path d="M6 16L24 7L42 16V32L24 41L6 32V16Z" fill="#004B87" fillOpacity="0.15" />
+            <path d="M24 7L6 16L24 25L42 16L24 7Z" stroke="#004B87" strokeWidth="3" strokeLinejoin="round"/>
+            <path d="M6 16V32L24 41M42 16V32L24 41" stroke="#004B87" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round"/>
+            <path d="M24 25V41" stroke="#004B87" strokeWidth="3" strokeLinecap="round"/>
+            <circle cx="34" cy="27" r="4" fill="#E11B22" />
+            <circle cx="14" cy="27" r="3" fill="#FBBF24" />
+          </svg>
           <span className="text-[9px] font-extrabold uppercase tracking-tight">Produtos</span>
         </button>
 
@@ -1690,7 +1724,14 @@ export default function ColgateInvestApp() {
           onClick={() => setActiveTab('support')}
           className={`flex flex-col items-center gap-1 text-center ${activeTab === 'support' ? 'text-colgate-red' : 'text-slate-400'}`}
         >
-          <Headphones className="w-5 h-5" />
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-5.5 h-5.5 transition-all ${activeTab === 'support' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`}>
+            <circle cx="24" cy="24" r="16" fill="#10B981" fillOpacity="0.15" />
+            <path d="M15 28C15 20 17 14 24 14C31 14 33 20 33 28" stroke="#10B981" strokeWidth="3" strokeLinecap="round"/>
+            <rect x="11" y="24" width="5" height="9" rx="2" fill="#E11B22" />
+            <rect x="32" y="24" width="5" height="9" rx="2" fill="#E11B22" />
+            <path d="M13 31C13 36 17 38 21 38H23" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round"/>
+            <circle cx="23" cy="38" r="2" fill="#FBBF24" />
+          </svg>
           <span className="text-[9px] font-extrabold uppercase tracking-tight">Atendimento</span>
         </button>
 
@@ -1698,7 +1739,12 @@ export default function ColgateInvestApp() {
           onClick={() => setActiveTab('team')}
           className={`flex flex-col items-center gap-1 text-center ${activeTab === 'team' ? 'text-colgate-red' : 'text-slate-400'}`}
         >
-          <Users className="w-5 h-5" />
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-5.5 h-5.5 transition-all ${activeTab === 'team' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`}>
+            <circle cx="18" cy="16" r="6" fill="#004B87" fillOpacity="0.8" />
+            <path d="M6 36C6 30 11 26 18 26C25 26 30 30 30 36V40H6V36Z" fill="#004B87" fillOpacity="0.15" stroke="#004B87" strokeWidth="3" strokeLinejoin="round"/>
+            <circle cx="33" cy="19" r="5" fill="#E11B22" fillOpacity="0.8" />
+            <path d="M26 38C26 34.5 28.5 31.5 33 31.5C37.5 31.5 40 34.5 40 38" stroke="#E11B22" strokeWidth="2.5" strokeLinecap="round"/>
+          </svg>
           <span className="text-[9px] font-extrabold uppercase tracking-tight">Equipe</span>
         </button>
 
@@ -1706,7 +1752,11 @@ export default function ColgateInvestApp() {
           onClick={() => setActiveTab('profile')}
           className={`flex flex-col items-center gap-1 text-center ${activeTab === 'profile' ? 'text-colgate-red' : 'text-slate-400'}`}
         >
-          <User className="w-5 h-5" />
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-5.5 h-5.5 transition-all ${activeTab === 'profile' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`}>
+            <rect x="8" y="8" width="32" height="32" rx="6" fill="#F59E0B" fillOpacity="0.15" stroke="#F59E0B" strokeWidth="3" />
+            <circle cx="24" cy="20" r="6" fill="#F59E0B" />
+            <path d="M14 36C14 31 18 29 24 29C30 29 34 31 34 36" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
+          </svg>
           <span className="text-[9px] font-extrabold uppercase tracking-tight">Perfil</span>
         </button>
       </nav>
