@@ -487,6 +487,12 @@ export default function ColgateInvestApp() {
     const amt = parseFloat(withdrawAmount);
     const key = profile.pixKey || tempPixKey;
 
+    // Rule: must have at least one active plan to withdraw
+    if (activePlans.length === 0) {
+      setWithdrawError('Para solicitar um saque você precisa ter pelo menos um plano ativo.');
+      return;
+    }
+
     if (isNaN(amt) || amt < 10) {
       setWithdrawError('O valor mínimo de saque é R$ 10,00');
       return;
@@ -1101,22 +1107,22 @@ export default function ColgateInvestApp() {
                         <span className="text-[9px] font-bold text-colgate-red bg-red-50 px-2.5 py-1 rounded-full uppercase">Fórmula Ativa</span>
                       </div>
 
-                      <div className="grid grid-cols-4 gap-2 bg-slate-50 p-3 rounded-xl text-[10px] text-center font-semibold">
-                        <div>
-                          <p className="text-slate-400 uppercase text-[7px]">Preço</p>
-                          <p className="text-slate-800">R$ {plan.price.toFixed(2)}</p>
+                      <div className="grid grid-cols-4 gap-2 bg-slate-50 p-4 rounded-2xl text-center border border-slate-100">
+                        <div className="space-y-1">
+                          <p className="text-slate-400 uppercase text-[9px] font-extrabold tracking-wider">Preço</p>
+                          <p className="text-slate-800 font-black text-sm">R$ {plan.price.toFixed(2)}</p>
                         </div>
-                        <div>
-                          <p className="text-slate-400 uppercase text-[7px]">Rendimento</p>
-                          <p className="text-emerald-600">R$ {plan.dailyIncome.toFixed(2)}</p>
+                        <div className="space-y-1">
+                          <p className="text-slate-400 uppercase text-[9px] font-extrabold tracking-wider">Rendimento</p>
+                          <p className="text-emerald-600 font-black text-sm">R$ {plan.dailyIncome.toFixed(2)}</p>
                         </div>
-                        <div>
-                          <p className="text-slate-400 uppercase text-[7px]">Estimado</p>
-                          <p className="text-colgate-blue">R$ {(plan.dailyIncome * plan.cycleDays).toFixed(2)}</p>
+                        <div className="space-y-1">
+                          <p className="text-slate-400 uppercase text-[9px] font-extrabold tracking-wider">Estimado</p>
+                          <p className="text-colgate-blue font-black text-sm">R$ {(plan.dailyIncome * plan.cycleDays).toFixed(2)}</p>
                         </div>
-                        <div>
-                          <p className="text-slate-400 uppercase text-[7px]">Ciclo</p>
-                          <p className="text-slate-700">{plan.cycleDays} Dias</p>
+                        <div className="space-y-1">
+                          <p className="text-slate-400 uppercase text-[9px] font-extrabold tracking-wider">Ciclo</p>
+                          <p className="text-slate-700 font-black text-sm">{plan.cycleDays} Dias</p>
                         </div>
                       </div>
 
@@ -1666,6 +1672,21 @@ export default function ColgateInvestApp() {
                   </div>
                 )}
 
+                {/* Active plan requirement rule banner */}
+                <div className={`p-3.5 rounded-xl text-[9px] font-semibold leading-relaxed border ${
+                  activePlans.length > 0
+                    ? 'bg-emerald-50 border-emerald-100 text-emerald-800'
+                    : 'bg-rose-50 border-rose-200 text-rose-800'
+                }`}>
+                  <p className="font-bold uppercase flex items-center gap-1 mb-1">
+                    <Icon icon={activePlans.length > 0 ? 'streamline-color:shield-check' : 'streamline-color:warning-triangle'} className="w-3.5 h-3.5 shrink-0" />
+                    {activePlans.length > 0 ? `Plano ativo: ${activePlans[0].name}` : 'Plano ativo obrigatório'}
+                  </p>
+                  {activePlans.length === 0 && (
+                    <p>Para solicitar um saque você precisa ter pelo menos <strong>um plano ativo</strong>. Ative um plano na aba de produtos e volte aqui.</p>
+                  )}
+                </div>
+
                 <div className="bg-blue-50 text-colgate-blue p-3.5 rounded-xl text-[9px] font-semibold leading-relaxed space-y-1">
                   <p className="font-bold uppercase flex items-center gap-1">
                     <Icon icon="streamline-color:help-question-1" className="w-3.5 h-3.5 text-colgate-blue" /> Informações Importantes
@@ -1677,7 +1698,8 @@ export default function ColgateInvestApp() {
                 <div className="space-y-2 pt-2 border-t border-slate-100">
                   <button
                     onClick={handleConfirmWithdrawal}
-                    className="w-full bg-colgate-blue hover:bg-blue-800 text-white py-3 rounded-xl font-bold text-xs shadow-sm transition-all"
+                    disabled={activePlans.length === 0}
+                    className="w-full bg-colgate-blue hover:bg-blue-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white py-3 rounded-xl font-bold text-xs shadow-sm transition-all"
                   >
                     Confirmar Solicitação de Saque
                   </button>
