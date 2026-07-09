@@ -29,7 +29,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: data.message || 'Erro ao consultar status do PIX' }, { status: response.status });
     }
 
-    return NextResponse.json(data);
+    // Normalize status: LytronPay returns status in Portuguese
+    // "pago" → "paid", "pendente" → "pending", etc.
+    const rawStatus = (data.status || '').toLowerCase();
+    const normalizedStatus =
+      rawStatus === 'pago' ? 'paid' :
+      rawStatus === 'pendente' ? 'pending' :
+      rawStatus === 'expirado' ? 'expired' :
+      rawStatus === 'cancelado' ? 'cancelled' :
+      rawStatus === 'reembolsado' ? 'refunded' :
+      rawStatus;
+
+    return NextResponse.json({ ...data, status: normalizedStatus });
   } catch (error: any) {
     console.error('Error querying PIX status:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });

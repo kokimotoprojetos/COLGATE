@@ -358,46 +358,55 @@ export default function ColgateInvestApp() {
   };
 
 
-  // Success handler for verified PIX payments
+  // Success handler for verified PIX payments (triggered by polling)
   const handleRechargeSuccess = async (amt: number) => {
     if (!sessionUser) return;
-    
-    const newBalance = profile.balance + amt;
-    const newTotalRecharge = profile.totalRecharge + amt;
 
-    const updatedProfile = {
-      ...profile,
-      balance: newBalance,
-      totalRecharge: newTotalRecharge
-    };
+    // Try to update the pending transaction to completed (webhook may have already done this)
+    // We use upsert logic: update pending → completed, or insert if not found
+    const { data: pendingTxs } = await supabase
+      .from('transactions')
+      .select('id')
+      .eq('user_id', sessionUser.id)
+      .eq('status', 'pending')
+      .eq('type', 'deposit')
+      .limit(1);
 
-    // DB: Insert transaction
-    const { data: txData, error: txError } = await supabase.from('transactions').insert([
-      {
-        user_id: sessionUser.id,
-        type: 'deposit',
-        amount: amt,
-        status: 'completed',
-        details: 'Recarga concluída via PIX'
-      }
-    ]).select().single();
-
-    if (txError) {
-      console.error('Error saving deposit transaction:', txError);
+    let txId: string;
+    if (pendingTxs && pendingTxs.length > 0) {
+      // Mark the existing pending transaction as completed
+      await supabase
+        .from('transactions')
+        .update({ status: 'completed', details: 'Recarga concluída via PIX' })
+        .eq('id', pendingTxs[0].id);
+      txId = pendingTxs[0].id;
+    } else {
+      // No pending tx found (webhook already handled it) — just refresh UI
+      txId = `tx-dep-${Date.now()}`;
     }
 
-    // DB: Update profile balance
-    const { error: profileError } = await supabase.from('profiles').update({
-      balance: newBalance,
-      total_recharge: newTotalRecharge
-    }).eq('id', sessionUser.id);
+    // Refresh profile from DB to get the real updated balance
+    const { data: freshProfile } = await supabase
+      .from('profiles')
+      .select('balance, total_recharge')
+      .eq('id', sessionUser.id)
+      .single();
 
-    if (profileError) {
-      console.error('Error updating profile balance after deposit:', profileError);
+    const newBalance = freshProfile ? Number(freshProfile.balance) : profile.balance + amt;
+    const newTotalRecharge = freshProfile ? Number(freshProfile.total_recharge) : profile.totalRecharge + amt;
+
+    // If webhook hasn't updated balance yet, update it now via frontend
+    if (!freshProfile || Number(freshProfile.balance) === profile.balance) {
+      await supabase.from('profiles').update({
+        balance: profile.balance + amt,
+        total_recharge: profile.totalRecharge + amt
+      }).eq('id', sessionUser.id);
     }
+
+    const updatedProfile = { ...profile, balance: newBalance, totalRecharge: newTotalRecharge };
 
     const newTx: Transaction = {
-      id: txData?.id || `tx-dep-${Date.now()}`,
+      id: txId,
       type: 'deposit',
       amount: amt,
       status: 'completed',
@@ -405,10 +414,12 @@ export default function ColgateInvestApp() {
       details: 'Recarga concluída via PIX'
     };
 
-    const updatedTxs = [newTx, ...transactions];
-
     setProfile(updatedProfile);
-    setTransactions(updatedTxs);
+    setTransactions(prev => {
+      // Replace pending tx if it exists, otherwise prepend
+      const withoutPending = prev.filter(t => !(t.status === 'pending' && t.type === 'deposit'));
+      return [newTx, ...withoutPending];
+    });
 
     setShowRechargeModal(false);
     setRechargeStep('input');
@@ -508,7 +519,8 @@ export default function ColgateInvestApp() {
           amount: amt,
           name: profile.username,
           email: sessionUser?.email,
-          cpf: cleanCpf
+          cpf: cleanCpf,
+          userId: sessionUser?.id  // Required so server saves pending tx for webhook to find
         })
       });
 
