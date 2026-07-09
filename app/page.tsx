@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
@@ -297,22 +297,24 @@ export default function ColgateInvestApp() {
     router.push('/login');
   };
 
-  // ─── 24-hour yield countdown (display only) ──────────────────────────────
+  // ─── 24-hour yield countdown + periodic sync ────────────────────────────
   // Actual yield crediting runs SERVER-SIDE every hour via the Vercel Cron Job
-  // at /api/cron/yield — completely independent of the user opening the app.
-  // This effect only drives the visual countdown timer in the UI.
+  // at /api/cron/yield — independent of the user.
+  // This effect drives the visual countdown AND refreshes plan data every 2 min
+  // so the countdown stays accurate after a cron credit.
 
-  const [nextYieldCountdowns, setNextYieldCountdowns] = useState<Record<string, number>>({}); // planId -> seconds remaining
+  const [nextYieldCountdowns, setNextYieldCountdowns] = useState<Record<string, number>>({});
+  const activePlansRef = useRef(activePlans);
+  activePlansRef.current = activePlans;
 
-  // Countdown timer: ticks every second, shows time until next 24h yield for each plan
   useEffect(() => {
-    if (activePlans.length === 0) return;
+    if (activePlans.length === 0 || !sessionUser) return;
     const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
     const tick = setInterval(() => {
       const now = Date.now();
       const countdowns: Record<string, number> = {};
-      for (const plan of activePlans) {
+      for (const plan of activePlansRef.current) {
         const lastClaimed = new Date(plan.lastClaimedAt).getTime();
         const nextYield = lastClaimed + MS_PER_DAY;
         const remaining = Math.max(0, Math.round((nextYield - now) / 1000));
@@ -321,8 +323,30 @@ export default function ColgateInvestApp() {
       setNextYieldCountdowns(countdowns);
     }, 1000);
 
-    return () => clearInterval(tick);
-  }, [activePlans]);
+    // Refresh active plans from DB every 2 minutes so lastClaimedAt stays in sync
+    const syncHandle = setInterval(async () => {
+      const { data: plansData, error: plansError } = await supabase
+        .from('active_plans')
+        .select('*')
+        .eq('user_id', sessionUser.id);
+      if (plansData && !plansError) {
+        setActivePlans(plansData.map(p => ({
+          id: p.id,
+          planId: p.plan_id,
+          name: p.name,
+          price: parseFloat(p.price),
+          dailyIncome: parseFloat(p.daily_income),
+          cycleDays: p.cycle_days,
+          purchasedAt: new Date(p.purchased_at).toLocaleString('pt-BR'),
+          lastClaimedAt: p.last_claimed_at,
+          earningsClaimed: parseFloat(p.earnings_claimed || 0),
+          earningsAccumulated: parseFloat(p.earnings_accumulated || 0)
+        })));
+      }
+    }, 120_000);
+
+    return () => { clearInterval(tick); clearInterval(syncHandle); };
+  }, [activePlans.length, sessionUser?.id]);
 
   const formatCountdown = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
