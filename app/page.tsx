@@ -297,58 +297,106 @@ export default function ColgateInvestApp() {
     router.push('/login');
   };
 
-  // Real-time accelerated yield ticking system
+  // ─── 24-hour daily yield system ─────────────────────────────────────────
+  // Runs on mount and when activePlans loads.
+  // Calculates how many full 24h cycles have passed since last_claimed_at
+  // for each plan, credits those yields immediately to DB + state, then
+  // starts a countdown timer that ticks every second showing time until next yield.
+
+  const [nextYieldCountdowns, setNextYieldCountdowns] = useState<Record<string, number>>({}); // planId -> seconds remaining
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (activePlans.length === 0) return;
+    if (!sessionUser || activePlans.length === 0) return;
 
-      // Accelerate accumulation: every 3 seconds ticks 1% of the daily yield of all active plans
-      let accruedAmount = 0;
-      const updatedPlans = activePlans.map(plan => {
-        const tickGain = plan.dailyIncome / 800; 
-        accruedAmount += tickGain;
-        return {
-          ...plan,
-          earningsAccumulated: plan.earningsAccumulated + tickGain
-        };
-      });
+    const creditPendingYields = async () => {
+      const MS_PER_DAY = 24 * 60 * 60 * 1000;
+      let totalCredited = 0;
+      const updatedPlans = [...activePlans];
 
-      if (accruedAmount > 0) {
+      for (let i = 0; i < updatedPlans.length; i++) {
+        const plan = updatedPlans[i];
+        const lastClaimed = new Date(plan.lastClaimedAt).getTime();
+        const now = Date.now();
+        const msSinceLastClaim = now - lastClaimed;
+        const fullCyclesDue = Math.floor(msSinceLastClaim / MS_PER_DAY);
+
+        if (fullCyclesDue >= 1) {
+          const yieldAmount = plan.dailyIncome * fullCyclesDue;
+          const newLastClaimed = new Date(lastClaimed + fullCyclesDue * MS_PER_DAY).toISOString();
+
+          // Credit to DB
+          await supabase.from('profiles').update({
+            balance: profile.balance + totalCredited + yieldAmount,
+            total_income: profile.totalIncome + totalCredited + yieldAmount
+          }).eq('id', sessionUser.id);
+
+          await supabase.from('active_plans').update({
+            last_claimed_at: newLastClaimed,
+            earnings_claimed: plan.earningsClaimed + yieldAmount,
+            earnings_accumulated: plan.earningsAccumulated + yieldAmount
+          }).eq('id', plan.id);
+
+          // Record transaction for each cycle
+          await supabase.from('transactions').insert([{
+            user_id: sessionUser.id,
+            type: 'yield',
+            amount: yieldAmount,
+            status: 'completed',
+            details: `Rendimento diário: ${plan.name} (${fullCyclesDue}x R$ ${plan.dailyIncome.toFixed(2)})`
+          }]);
+
+          totalCredited += yieldAmount;
+          updatedPlans[i] = {
+            ...plan,
+            lastClaimedAt: newLastClaimed,
+            earningsClaimed: plan.earningsClaimed + yieldAmount,
+            earningsAccumulated: plan.earningsAccumulated + yieldAmount
+          };
+        }
+      }
+
+      if (totalCredited > 0) {
         setProfile(prev => ({
           ...prev,
-          balance: prev.balance + accruedAmount,
-          totalIncome: prev.totalIncome + accruedAmount
+          balance: prev.balance + totalCredited,
+          totalIncome: prev.totalIncome + totalCredited
         }));
         setActivePlans(updatedPlans);
+        triggerToast(`+R$ ${totalCredited.toFixed(2)} de rendimento diário creditado!`, 'success');
       }
-    }, 3000);
+    };
 
-    return () => clearInterval(interval);
+    creditPendingYields();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionUser, activePlans.length]);
+
+  // Countdown timer: ticks every second, shows seconds until next 24h yield for each plan
+  useEffect(() => {
+    if (activePlans.length === 0) return;
+    const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+    const tick = setInterval(() => {
+      const now = Date.now();
+      const countdowns: Record<string, number> = {};
+      for (const plan of activePlans) {
+        const lastClaimed = new Date(plan.lastClaimedAt).getTime();
+        const nextYield = lastClaimed + MS_PER_DAY;
+        const remaining = Math.max(0, Math.round((nextYield - now) / 1000));
+        countdowns[plan.id] = remaining;
+      }
+      setNextYieldCountdowns(countdowns);
+    }, 1000);
+
+    return () => clearInterval(tick);
   }, [activePlans]);
 
-  // Periodic database sync (every 15 seconds) to persist ticking earnings
-  useEffect(() => {
-    if (!sessionUser) return;
+  const formatCountdown = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
 
-    const syncInterval = setInterval(async () => {
-      try {
-        await supabase.from('profiles').update({
-          balance: profile.balance,
-          total_income: profile.totalIncome
-        }).eq('id', sessionUser.id);
-
-        for (const plan of activePlans) {
-          await supabase.from('active_plans').update({
-            earnings_accumulated: plan.earningsAccumulated
-          }).eq('id', plan.id);
-        }
-      } catch (err) {
-        console.error('Error syncing real-time earnings to Supabase:', err);
-      }
-    }, 15000);
-
-    return () => clearInterval(syncInterval);
-  }, [profile.balance, profile.totalIncome, activePlans, sessionUser]);
 
   // Success handler for verified LytronPay Pix payments
   const handleRechargeSuccess = async (amt: number) => {
@@ -1017,8 +1065,23 @@ export default function ColgateInvestApp() {
                             </div>
                             <div>
                               <p className="text-slate-400 text-[8px] uppercase">Acumulado Total</p>
-                              <p className="text-colgate-blue font-bold">R$ {plan.earningsAccumulated.toFixed(4)}</p>
+                              <p className="text-colgate-blue font-bold">R$ {plan.earningsAccumulated.toFixed(2)}</p>
                             </div>
+                          </div>
+
+                          {/* 24h countdown to next yield */}
+                          <div className="flex items-center justify-between bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-xl px-3 py-2.5">
+                            <div className="flex items-center gap-1.5">
+                              <Icon icon="streamline-color:clock-1" className="w-4 h-4 text-emerald-600 shrink-0" />
+                              <span className="text-[9px] font-extrabold text-emerald-700 uppercase tracking-wide">Próximo rendimento em</span>
+                            </div>
+                            <span className="font-black text-emerald-700 text-sm font-mono tracking-widest">
+                              {nextYieldCountdowns[plan.id] !== undefined
+                                ? nextYieldCountdowns[plan.id] === 0
+                                  ? '⏳ Creditando...'
+                                  : formatCountdown(nextYieldCountdowns[plan.id])
+                                : '--:--:--'}
+                            </span>
                           </div>
                         </div>
                       );
