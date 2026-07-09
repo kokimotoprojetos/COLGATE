@@ -69,8 +69,22 @@ export async function POST(request: Request) {
       }));
 
       // 4. Calculate statistics
+      // totalDeposited = only real PIX deposits (excludes manual credits via admin panel)
       const totalDeposited = transactions
-        .filter((t: any) => t.type === 'deposit' && t.status === 'completed')
+        .filter((t: any) =>
+          t.type === 'deposit' &&
+          t.status === 'completed' &&
+          !String(t.details || '').includes('Painel Administrativo')
+        )
+        .reduce((sum: number, t: any) => sum + Number(t.amount), 0);
+
+      // totalAdminCredit = saldo adicionado manualmente pelo admin (separado)
+      const totalAdminCredit = transactions
+        .filter((t: any) =>
+          t.type === 'deposit' &&
+          t.status === 'completed' &&
+          String(t.details || '').includes('Painel Administrativo')
+        )
         .reduce((sum: number, t: any) => sum + Number(t.amount), 0);
 
       const totalPaid = transactions
@@ -84,6 +98,7 @@ export async function POST(request: Request) {
         stats: {
           totalUsers: (profiles || []).length,
           totalDeposited,
+          totalAdminCredit,
           totalPaid,
           pendingCount: pendingWithdrawals.length
         },

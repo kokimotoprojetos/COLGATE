@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface AdminStats {
   totalUsers: number;
   totalDeposited: number;
+  totalAdminCredit: number;
   totalPaid: number;
   pendingCount: number;
 }
@@ -50,6 +51,7 @@ export default function AdminPanel() {
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     totalDeposited: 0,
+    totalAdminCredit: 0,
     totalPaid: 0,
     pendingCount: 0,
   });
@@ -354,7 +356,7 @@ export default function AdminPanel() {
           /* ADMIN PORTAL */
           <>
             {/* STATS OVERVIEW CARDS */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm space-y-2 hover:shadow-md transition-shadow relative overflow-hidden">
                 <div className="absolute right-3 top-3 bg-red-50 text-colgate-red p-1.5 rounded-lg">
                   <Icon icon="streamline-color:user-multiple-group" className="w-5 h-5" />
@@ -363,12 +365,22 @@ export default function AdminPanel() {
                 <h3 className="text-2xl font-black text-slate-800">{stats.totalUsers}</h3>
               </div>
 
-              <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm space-y-2 hover:shadow-md transition-shadow relative overflow-hidden">
+              <div className="bg-white border border-emerald-100 rounded-3xl p-5 shadow-sm space-y-2 hover:shadow-md transition-shadow relative overflow-hidden">
                 <div className="absolute right-3 top-3 bg-emerald-50 text-emerald-600 p-1.5 rounded-lg">
                   <Icon icon="streamline-color:bag-dollar" className="w-5 h-5" />
                 </div>
-                <p className="text-[10px] text-slate-400 font-extrabold uppercase">Total Depositado</p>
+                <p className="text-[10px] text-slate-400 font-extrabold uppercase">Depósitos Reais (PIX)</p>
                 <h3 className="text-2xl font-black text-emerald-600">R$ {stats.totalDeposited.toFixed(2)}</h3>
+                <p className="text-[9px] text-emerald-400 font-semibold">Via LytronPay / webhook</p>
+              </div>
+
+              <div className="bg-white border border-violet-100 rounded-3xl p-5 shadow-sm space-y-2 hover:shadow-md transition-shadow relative overflow-hidden">
+                <div className="absolute right-3 top-3 bg-violet-50 text-violet-600 p-1.5 rounded-lg">
+                  <Icon icon="streamline-color:shield-check" className="w-5 h-5" />
+                </div>
+                <p className="text-[10px] text-slate-400 font-extrabold uppercase">Créditos Admin</p>
+                <h3 className="text-2xl font-black text-violet-600">R$ {stats.totalAdminCredit.toFixed(2)}</h3>
+                <p className="text-[9px] text-violet-400 font-semibold">Adicionado via painel</p>
               </div>
 
               <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm space-y-2 hover:shadow-md transition-shadow relative overflow-hidden">
