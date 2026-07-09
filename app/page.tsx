@@ -3,31 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
-import { 
-  Home, 
-  Package, 
-  Headphones, 
-  Users, 
-  User, 
-  TrendingUp, 
-  ArrowDownLeft, 
-  ArrowUpRight, 
-  Copy, 
-  CheckCircle2, 
-  AlertCircle, 
-  Send, 
-  ChevronRight, 
-  Timer, 
-  Calendar, 
-  Sparkles, 
-  DollarSign, 
-  Wallet,
-  ShieldCheck,
-  RefreshCw,
-  Bell,
-  HelpCircle,
-  QrCode
-} from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Interfaces for our interactive states
@@ -882,7 +858,7 @@ export default function ColgateInvestApp() {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4">
         <div className="flex flex-col items-center gap-3">
-          <RefreshCw className="w-8 h-8 text-colgate-red animate-spin" />
+          <Icon icon="streamline-color:cloud-refresh" className="w-8 h-8 text-colgate-red animate-spin" />
           <p className="text-xs text-slate-500 font-bold uppercase tracking-wider animate-pulse">Verificando sessão segura...</p>
         </div>
       </div>
@@ -910,7 +886,7 @@ export default function ColgateInvestApp() {
               showToast.type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' :
               'bg-blue-50 border-blue-200 text-blue-800'
             }`}>
-              {showToast.type === 'success' ? <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" /> : <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />}
+              {showToast.type === 'success' ? <Icon icon="streamline-color:check" className="w-5 h-5 text-emerald-600 shrink-0" /> : <Icon icon="streamline-color:warning-triangle" className="w-5 h-5 text-rose-600 shrink-0" />}
               <span className="text-xs font-semibold">{showToast.message}</span>
             </div>
           </motion.div>
@@ -934,12 +910,12 @@ export default function ColgateInvestApp() {
             onClick={() => triggerToast("Sem novas notificações no momento. Escove seus dentes e aproveite seus lucros!", "info")}
             className="p-1.5 rounded-full hover:bg-white/10 relative"
           >
-            <Bell className="w-5 h-5" />
+            <Icon icon="streamline-color:ringing-bell-notification" className="w-5 h-5" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping" />
           </button>
           
           <div id="user-badge" className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-xs font-medium">
-            <User className="w-3.5 h-3.5" />
+            <Icon icon="streamline-color:user-single-neutral-male" className="w-3.5 h-3.5" />
             <span>ID: {profile.idCode}</span>
           </div>
         </div>
@@ -966,12 +942,7 @@ export default function ColgateInvestApp() {
                   className="flex flex-col items-center gap-1.5 text-center group"
                 >
                   <div className="w-12 h-12 rounded-full bg-red-50 text-colgate-red flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
-                      <rect x="6" y="14" width="36" height="24" rx="4" fill="#E11B22" fillOpacity="0.15" stroke="#E11B22" strokeWidth="3" />
-                      <circle cx="32" cy="26" r="4" fill="#004B87" />
-                      <path d="M12 20H22M12 26H18" stroke="#E11B22" strokeWidth="3" strokeLinecap="round" />
-                      <path d="M26 12L32 6L38 12" stroke="#FBBF24" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <Icon icon="streamline-color:bag-dollar" className="w-6 h-6" />
                   </div>
                   <span className="text-[11px] font-bold text-slate-700">Recarregar</span>
                 </button>
@@ -981,12 +952,7 @@ export default function ColgateInvestApp() {
                   className="flex flex-col items-center gap-1.5 text-center group"
                 >
                   <div className="w-12 h-12 rounded-full bg-blue-50 text-colgate-blue flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
-                      <rect x="6" y="14" width="36" height="24" rx="4" fill="#004B87" fillOpacity="0.15" stroke="#004B87" strokeWidth="3" />
-                      <circle cx="16" cy="26" r="4" fill="#E11B22" />
-                      <path d="M26 20H36M30 26H36" stroke="#004B87" strokeWidth="3" strokeLinecap="round" />
-                      <path d="M38 12L32 6L26 12" stroke="#FBBF24" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <Icon icon="streamline-color:payment-cash-out-3" className="w-6 h-6" />
                   </div>
                   <span className="text-[11px] font-bold text-slate-700">Sacar</span>
                 </button>
@@ -996,13 +962,7 @@ export default function ColgateInvestApp() {
                   className="flex flex-col items-center gap-1.5 text-center group"
                 >
                   <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
-                      <circle cx="24" cy="24" r="16" fill="#10B981" fillOpacity="0.15" />
-                      <path d="M15 28C15 20 17 14 24 14C31 14 33 20 33 28" stroke="#10B981" strokeWidth="3" strokeLinecap="round"/>
-                      <rect x="11" y="24" width="5" height="9" rx="2" fill="#E11B22" />
-                      <rect x="32" y="24" width="5" height="9" rx="2" fill="#E11B22" />
-                      <path d="M13 31C13 36 17 38 21 38H23" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round"/>
-                    </svg>
+                    <Icon icon="streamline-color:call-center-support-service" className="w-6 h-6" />
                   </div>
                   <span className="text-[11px] font-bold text-slate-700">Suporte AI</span>
                 </button>
@@ -1012,12 +972,7 @@ export default function ColgateInvestApp() {
                   className="flex flex-col items-center gap-1.5 text-center group"
                 >
                   <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
-                      <path d="M6 16L24 7L42 16V32L24 41L6 32V16Z" fill="#F59E0B" fillOpacity="0.15" />
-                      <path d="M24 7L6 16L24 25L42 16L24 7Z" stroke="#F59E0B" strokeWidth="3" strokeLinejoin="round"/>
-                      <path d="M6 16V32L24 41M42 16V32L24 41" stroke="#F59E0B" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round"/>
-                      <path d="M24 25V41" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-                    </svg>
+                    <Icon icon="streamline-color:archive-box" className="w-6 h-6" />
                   </div>
                   <span className="text-[11px] font-bold text-slate-700">Meus Planos</span>
                 </button>
@@ -1026,7 +981,7 @@ export default function ColgateInvestApp() {
               {/* SCROLLING ANNOUNCEMENT TICKER */}
               <div id="announcement-ticker" className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex items-center gap-3">
                 <div className="bg-amber-100 p-1.5 rounded-lg text-amber-800">
-                  <Sparkles className="w-4 h-4 animate-spin" />
+                  <Icon icon="streamline-color:magic-wand-2" className="w-4 h-4 animate-spin" />
                 </div>
                 <div className="flex-1 overflow-hidden h-5 relative">
                   <div className="absolute whitespace-nowrap animate-[marquee_18s_linear_infinite] text-xs font-semibold text-amber-800 flex gap-6">
@@ -1040,7 +995,7 @@ export default function ColgateInvestApp() {
               {/* EARNINGS DASHBOARD CARD */}
               <div id="earnings-card" className="bg-colgate-blue rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
                 <div className="absolute right-3 top-3 opacity-10">
-                  <Wallet className="w-20 h-20" />
+                  <Icon icon="streamline-color:wallet" className="w-20 h-20" />
                 </div>
                 <div className="space-y-4">
                   <div className="flex justify-between items-start">
@@ -1051,7 +1006,7 @@ export default function ColgateInvestApp() {
                       </h3>
                     </div>
                     <div className="bg-white/20 text-white font-bold text-[10px] py-1 px-2.5 rounded-full flex items-center gap-1">
-                      <ShieldCheck className="w-3 h-3 text-emerald-300" />
+                      <Icon icon="streamline-color:shield-check" className="w-3 h-3 text-emerald-300" />
                       Ativo
                     </div>
                   </div>
@@ -1136,7 +1091,7 @@ export default function ColgateInvestApp() {
                 {homePlanFilter === 'meus' && (
                   activePlans.length === 0 ? (
                     <div className="text-center p-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-3">
-                      <Package className="w-8 h-8 text-slate-300 mx-auto" />
+                      <Icon icon="streamline-color:archive-box" className="w-8 h-8 text-slate-300 mx-auto" />
                       <p className="text-xs text-slate-500 font-semibold">Nenhum plano ativado ainda.</p>
                       <button 
                         onClick={() => setActiveTab('products')} 
@@ -1164,7 +1119,7 @@ export default function ColgateInvestApp() {
                               <div className="flex justify-between">
                                 <h4 className="text-xs font-bold text-slate-800">{plan.name}</h4>
                                 <span className="text-[9px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                  <RefreshCw className="w-2.5 h-2.5 animate-spin" /> Gerando
+                                  <Icon icon="streamline-color:cloud-refresh" className="w-2.5 h-2.5 animate-spin" /> Gerando
                                 </span>
                               </div>
                               <p className="text-[10px] text-slate-400">Ativado em: {plan.purchasedAt}</p>
@@ -1286,13 +1241,13 @@ export default function ColgateInvestApp() {
 
                       <div className="flex justify-between items-center pt-2">
                         <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                          <ShieldCheck className="w-3.5 h-3.5 text-colgate-red" /> Seguro Garantido Colgate
+                          <Icon icon="streamline-color:shield-check" className="w-3.5 h-3.5 text-colgate-red" /> Seguro Garantido Colgate
                         </span>
                         <button 
                           onClick={() => setShowBuyModal(plan)}
                           className="bg-colgate-red hover:bg-colgate-dark-red text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2"
                         >
-                          Ativar Plano <ChevronRight className="w-4 h-4" />
+                          Ativar Plano <Icon icon="streamline-color:arrow-round-right" className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -1314,7 +1269,7 @@ export default function ColgateInvestApp() {
               {/* Support Doctor Header Banner */}
               <div className="bg-gradient-to-r from-colgate-red to-red-700 p-4 text-white flex items-center gap-3 shadow-inner">
                 <div className="w-12 h-12 rounded-full border-2 border-white/20 overflow-hidden relative bg-white/20 flex items-center justify-center font-bold text-white shadow-md shrink-0">
-                  <User className="w-6 h-6 text-white" />
+                  <Icon icon="streamline-color:user-single-neutral-male" className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
@@ -1345,7 +1300,7 @@ export default function ColgateInvestApp() {
                 {isTyping && (
                   <div className="flex justify-start">
                     <div className="bg-white rounded-2xl rounded-bl-none p-3 border border-slate-100 shadow-sm flex items-center gap-1.5 text-slate-400 text-[10px] font-bold">
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-colgate-red" />
+                      <Icon icon="streamline-color:cloud-refresh" className="w-3.5 h-3.5 animate-spin text-colgate-red" />
                       Dra. Sorriso está analisando...
                     </div>
                   </div>
@@ -1396,7 +1351,7 @@ export default function ColgateInvestApp() {
                   disabled={isTyping || !userInput.trim()}
                   className="bg-colgate-red hover:bg-colgate-dark-red disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl p-2.5 shadow-sm transition-colors shrink-0"
                 >
-                  <Send className="w-4 h-4" />
+                  <Icon icon="streamline-color:mail-send-email-message" className="w-4 h-4" />
                 </button>
               </div>
             </motion.div>
@@ -1446,7 +1401,7 @@ export default function ColgateInvestApp() {
                       onClick={() => copyToClipboard(`COLG-INV-${profile.idCode}`, "Código de convite")}
                       className="bg-slate-100 hover:bg-slate-200 p-2.5 rounded-xl text-slate-600 transition-colors shrink-0"
                     >
-                      <Copy className="w-4 h-4" />
+                      <Icon icon="streamline-color:copy-paste" className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -1461,7 +1416,7 @@ export default function ColgateInvestApp() {
                       onClick={() => copyToClipboard(`https://colgateinvest.app/?ref=${profile.idCode}`, "Link de afiliado")}
                       className="bg-slate-100 hover:bg-slate-200 p-2.5 rounded-xl text-slate-600 transition-colors shrink-0"
                     >
-                      <Copy className="w-4 h-4" />
+                      <Icon icon="streamline-color:copy-paste" className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -1470,7 +1425,7 @@ export default function ColgateInvestApp() {
               {/* Commission rules list */}
               <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 space-y-3">
                 <h3 className="text-xs font-bold text-colgate-blue flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4" /> Níveis de Comissão Colgate
+                  <Icon icon="streamline-color:magic-wand-2" className="w-4 h-4" /> Níveis de Comissão Colgate
                 </h3>
                 <ul className="text-xs space-y-2 text-slate-600">
                   <li className="flex justify-between">
@@ -1569,7 +1524,7 @@ export default function ColgateInvestApp() {
               {/* Register/Modify PIX Key Area */}
               <div className="bg-white border border-slate-100 rounded-2xl p-4 space-y-3 shadow-sm">
                 <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <Wallet className="w-4 h-4 text-colgate-red" /> Chave PIX de Saque
+                  <Icon icon="streamline-color:wallet" className="w-4 h-4 text-colgate-red" /> Chave PIX de Saque
                 </h3>
                 
                 <div className="space-y-3">
@@ -1631,7 +1586,7 @@ export default function ColgateInvestApp() {
               {/* Transactions History Log */}
               <div className="space-y-2">
                 <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <TrendingUp className="w-4 h-4 text-colgate-red" /> Histórico de Transações
+                  <Icon icon="streamline-color:graph-arrow-increase" className="w-4 h-4 text-colgate-red" /> Histórico de Transações
                 </h3>
                 <div className="space-y-2 max-h-52 overflow-y-auto no-scrollbar pr-1">
                   {transactions.map(tx => (
@@ -1695,13 +1650,7 @@ export default function ColgateInvestApp() {
           onClick={() => setActiveTab('home')}
           className={`flex flex-col items-center gap-1 text-center ${activeTab === 'home' ? 'text-colgate-red' : 'text-slate-400'}`}
         >
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-5.5 h-5.5 transition-all ${activeTab === 'home' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`}>
-            <path d="M6 19.5L24 4.5L42 19.5V40.5C42 41.8807 40.8807 43 39.5 43H8.5C7.11929 43 6 41.8807 6 40.5V19.5Z" fill="#E11B22" fillOpacity="0.15" />
-            <path d="M24 4.5L6 19.5H14V41H34V19.5H42L24 4.5Z" stroke="#E11B22" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round"/>
-            <rect x="20" y="27" width="8" height="14" rx="1.5" fill="#004B87" />
-            <rect x="15" y="16" width="6" height="6" rx="1" fill="#FBBF24" />
-            <rect x="27" y="16" width="6" height="6" rx="1" fill="#FBBF24" />
-          </svg>
+          <Icon icon="streamline-color:home-3" className={`w-5.5 h-5.5 transition-all ${activeTab === 'home' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`} />
           <span className="text-[9px] font-extrabold uppercase tracking-tight">Início</span>
         </button>
 
@@ -1709,14 +1658,7 @@ export default function ColgateInvestApp() {
           onClick={() => setActiveTab('products')}
           className={`flex flex-col items-center gap-1 text-center ${activeTab === 'products' ? 'text-colgate-red' : 'text-slate-400'}`}
         >
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-5.5 h-5.5 transition-all ${activeTab === 'products' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`}>
-            <path d="M6 16L24 7L42 16V32L24 41L6 32V16Z" fill="#004B87" fillOpacity="0.15" />
-            <path d="M24 7L6 16L24 25L42 16L24 7Z" stroke="#004B87" strokeWidth="3" strokeLinejoin="round"/>
-            <path d="M6 16V32L24 41M42 16V32L24 41" stroke="#004B87" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round"/>
-            <path d="M24 25V41" stroke="#004B87" strokeWidth="3" strokeLinecap="round"/>
-            <circle cx="34" cy="27" r="4" fill="#E11B22" />
-            <circle cx="14" cy="27" r="3" fill="#FBBF24" />
-          </svg>
+          <Icon icon="streamline-color:archive-box" className={`w-5.5 h-5.5 transition-all ${activeTab === 'products' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`} />
           <span className="text-[9px] font-extrabold uppercase tracking-tight">Produtos</span>
         </button>
 
@@ -1724,14 +1666,7 @@ export default function ColgateInvestApp() {
           onClick={() => setActiveTab('support')}
           className={`flex flex-col items-center gap-1 text-center ${activeTab === 'support' ? 'text-colgate-red' : 'text-slate-400'}`}
         >
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-5.5 h-5.5 transition-all ${activeTab === 'support' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`}>
-            <circle cx="24" cy="24" r="16" fill="#10B981" fillOpacity="0.15" />
-            <path d="M15 28C15 20 17 14 24 14C31 14 33 20 33 28" stroke="#10B981" strokeWidth="3" strokeLinecap="round"/>
-            <rect x="11" y="24" width="5" height="9" rx="2" fill="#E11B22" />
-            <rect x="32" y="24" width="5" height="9" rx="2" fill="#E11B22" />
-            <path d="M13 31C13 36 17 38 21 38H23" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round"/>
-            <circle cx="23" cy="38" r="2" fill="#FBBF24" />
-          </svg>
+          <Icon icon="streamline-color:call-center-support-service" className={`w-5.5 h-5.5 transition-all ${activeTab === 'support' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`} />
           <span className="text-[9px] font-extrabold uppercase tracking-tight">Atendimento</span>
         </button>
 
@@ -1739,12 +1674,7 @@ export default function ColgateInvestApp() {
           onClick={() => setActiveTab('team')}
           className={`flex flex-col items-center gap-1 text-center ${activeTab === 'team' ? 'text-colgate-red' : 'text-slate-400'}`}
         >
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-5.5 h-5.5 transition-all ${activeTab === 'team' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`}>
-            <circle cx="18" cy="16" r="6" fill="#004B87" fillOpacity="0.8" />
-            <path d="M6 36C6 30 11 26 18 26C25 26 30 30 30 36V40H6V36Z" fill="#004B87" fillOpacity="0.15" stroke="#004B87" strokeWidth="3" strokeLinejoin="round"/>
-            <circle cx="33" cy="19" r="5" fill="#E11B22" fillOpacity="0.8" />
-            <path d="M26 38C26 34.5 28.5 31.5 33 31.5C37.5 31.5 40 34.5 40 38" stroke="#E11B22" strokeWidth="2.5" strokeLinecap="round"/>
-          </svg>
+          <Icon icon="streamline-color:user-multiple-group" className={`w-5.5 h-5.5 transition-all ${activeTab === 'team' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`} />
           <span className="text-[9px] font-extrabold uppercase tracking-tight">Equipe</span>
         </button>
 
@@ -1752,11 +1682,7 @@ export default function ColgateInvestApp() {
           onClick={() => setActiveTab('profile')}
           className={`flex flex-col items-center gap-1 text-center ${activeTab === 'profile' ? 'text-colgate-red' : 'text-slate-400'}`}
         >
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-5.5 h-5.5 transition-all ${activeTab === 'profile' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`}>
-            <rect x="8" y="8" width="32" height="32" rx="6" fill="#F59E0B" fillOpacity="0.15" stroke="#F59E0B" strokeWidth="3" />
-            <circle cx="24" cy="20" r="6" fill="#F59E0B" />
-            <path d="M14 36C14 31 18 29 24 29C30 29 34 31 34 36" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-          </svg>
+          <Icon icon="streamline-color:user-single-neutral-male" className={`w-5.5 h-5.5 transition-all ${activeTab === 'profile' ? 'grayscale-0 opacity-100 scale-105' : 'grayscale opacity-60'}`} />
           <span className="text-[9px] font-extrabold uppercase tracking-tight">Perfil</span>
         </button>
       </nav>
@@ -1779,7 +1705,7 @@ export default function ColgateInvestApp() {
               <div className="p-5 space-y-4">
                 {isGeneratingPix ? (
                   <div className="py-12 flex flex-col justify-center items-center gap-3">
-                    <RefreshCw className="w-8 h-8 text-colgate-red animate-spin" />
+                    <Icon icon="streamline-color:cloud-refresh" className="w-8 h-8 text-colgate-red animate-spin" />
                     <p className="text-xs text-slate-500 font-bold uppercase tracking-wider animate-pulse">Gerando PIX com segurança...</p>
                   </div>
                 ) : rechargeStep === 'input' ? (
@@ -1827,7 +1753,7 @@ export default function ColgateInvestApp() {
                         onClick={handleConfirmRechargeRequest}
                         className="w-full bg-colgate-red hover:bg-colgate-dark-red text-white py-3 rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1"
                       >
-                        <QrCode className="w-4 h-4" /> Gerar Chave de Pagamento PIX
+                        <Icon icon="streamline-color:qr-code" className="w-4 h-4" /> Gerar Chave de Pagamento PIX
                       </button>
                       <button
                         onClick={() => setShowRechargeModal(false)}
@@ -1871,7 +1797,7 @@ export default function ColgateInvestApp() {
                           }}
                           className="bg-slate-100 hover:bg-slate-200 p-2.5 rounded-xl text-slate-600 transition-colors shrink-0 flex items-center justify-center"
                         >
-                          <Copy className="w-4 h-4" />
+                          <Icon icon="streamline-color:copy-paste" className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -1965,14 +1891,14 @@ export default function ColgateInvestApp() {
 
                 {withdrawError && (
                   <div className="bg-rose-50 border border-rose-100 text-rose-800 p-3 rounded-xl flex items-center gap-2 text-[10px] font-semibold">
-                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                    <Icon icon="streamline-color:warning-triangle" className="w-4 h-4 text-rose-600 shrink-0" />
                     <span>{withdrawError}</span>
                   </div>
                 )}
 
                 <div className="bg-blue-50 text-colgate-blue p-3.5 rounded-xl text-[9px] font-semibold leading-relaxed space-y-1">
                   <p className="font-bold uppercase flex items-center gap-1">
-                    <HelpCircle className="w-3.5 h-3.5 text-colgate-blue" /> Informações Importantes
+                    <Icon icon="streamline-color:help-question-1" className="w-3.5 h-3.5 text-colgate-blue" /> Informações Importantes
                   </p>
                   <p>• O tempo médio de compensação do PIX é de 10 minutos a 2 horas.</p>
                   <p>• Saques solicitados fora do horário comercial (09h às 18h) podem ser creditados no próximo dia útil.</p>
@@ -2042,7 +1968,7 @@ export default function ColgateInvestApp() {
 
                 {profile.balance < showBuyModal.price && (
                   <div className="bg-rose-50 border border-rose-100 text-rose-800 p-3 rounded-xl flex items-center gap-2 text-[10px] font-semibold leading-relaxed">
-                    <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+                    <Icon icon="streamline-color:warning-triangle" className="w-5 h-5 text-rose-600 shrink-0" />
                     <p>Seu saldo é insuficiente para esta compra. Você será redirecionado para a recarga de R$ {showBuyModal.price.toFixed(2)} para completar.</p>
                   </div>
                 )}

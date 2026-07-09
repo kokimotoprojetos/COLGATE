@@ -3,14 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useRouter } from 'next/navigation';
-import { 
-  Lock, 
-  Mail, 
-  User as UserIcon, 
-  ShieldCheck, 
-  AlertCircle,
-  ArrowRight
-} from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function AuthPage() {
@@ -199,7 +192,7 @@ export default function AuthPage() {
                 exit={{ opacity: 0, height: 0 }}
                 className="bg-rose-50 border border-rose-100 rounded-2xl p-3 flex gap-2 items-center text-rose-700 text-xs font-semibold"
               >
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+                <Icon icon="streamline-color:warning-triangle" className="w-4 h-4 shrink-0 text-rose-500" />
                 <span>{errorMsg}</span>
               </motion.div>
             )}
@@ -211,7 +204,7 @@ export default function AuthPage() {
                 exit={{ opacity: 0, height: 0 }}
                 className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 flex gap-2 items-center text-emerald-700 text-xs font-semibold"
               >
-                <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-500" />
+                <Icon icon="streamline-color:shield-check" className="w-4 h-4 shrink-0 text-emerald-500" />
                 <span>{successMsg}</span>
               </motion.div>
             )}
@@ -222,7 +215,7 @@ export default function AuthPage() {
               <label className="text-[10px] uppercase font-bold text-slate-400">Nome de Usuário</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
-                  <UserIcon className="w-4 h-4" />
+                  <Icon icon="streamline-color:user-single-neutral-male" className="w-4 h-4" />
                 </span>
                 <input
                   type="text"
@@ -239,7 +232,7 @@ export default function AuthPage() {
             <label className="text-[10px] uppercase font-bold text-slate-400">E-mail</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
-                <Mail className="w-4 h-4" />
+                <Icon icon="streamline-color:send-email" className="w-4 h-4" />
               </span>
               <input
                 type="email"
@@ -255,7 +248,7 @@ export default function AuthPage() {
             <label className="text-[10px] uppercase font-bold text-slate-400">Senha</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
-                <Lock className="w-4 h-4" />
+                <Icon icon="streamline-color:padlock-square-1" className="w-4 h-4" />
               </span>
               <input
                 type="password"
@@ -277,7 +270,7 @@ export default function AuthPage() {
             ) : (
               <>
                 <span>{activeTab === 'login' ? 'Entrar no Sistema' : 'Criar minha Conta'}</span>
-                <ArrowRight className="w-4 h-4" />
+                <Icon icon="streamline-color:arrow-round-right" className="w-4 h-4" />
               </>
             )}
           </button>
@@ -285,7 +278,7 @@ export default function AuthPage() {
 
         {/* Footer Informativo */}
         <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-semibold uppercase">
-          <ShieldCheck className="w-3.5 h-3.5 text-colgate-blue" />
+          <Icon icon="streamline-color:shield-check" className="w-3.5 h-3.5 text-colgate-blue" />
           <span>Sistema Seguro Colgate</span>
         </div>
       </motion.div>
