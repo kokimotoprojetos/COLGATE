@@ -30,6 +30,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Credenciais administrativas inválidas' }, { status: 401 });
     }
 
+    if (supabaseServiceKey === 'placeholder-service-key' || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json({ 
+        error: 'Erro de Configuração: A variável de ambiente "SUPABASE_SERVICE_ROLE_KEY" não foi cadastrada no painel do Vercel. Por favor, adicione-a nas configurações do seu projeto no Vercel e faça um novo deploy.' 
+      }, { status: 500 });
+    }
+
     if (action === 'get-stats') {
       // 1. Fetch all profiles
       const { data: profiles, error: errProf } = await supabaseAdmin
