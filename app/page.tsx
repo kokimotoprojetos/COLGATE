@@ -73,86 +73,72 @@ interface ChatMessage {
 const PLANS_CATALOG = [
   {
     id: 'colgate-total-12',
-    name: 'Colgate Total 12 Active',
-    slogan: 'Prevenção completa de cáries e lucros garantidos.',
+    name: 'VIP 1',
+    slogan: '',
     price: 10.00,
     dailyIncome: 0.50, // 5% daily
     cycleDays: 30,
     color: 'from-red-500 to-rose-600',
     accentColor: '#E11B22',
     iconColor: 'text-red-500',
-    desc: 'O plano básico ideal para escovar seus primeiros rendimentos diários sem risco.',
+    desc: '',
     svgPath: 'toothpaste',
     imagePath: '/plano1.png'
   },
   {
     id: 'colgate-luminous-white',
-    name: 'Colgate Luminous White',
-    slogan: 'Um sorriso e um saldo bancário radiantes.',
+    name: 'VIP 2',
+    slogan: '',
     price: 50.00,
     dailyIncome: 3.00, // 6% daily
     cycleDays: 30,
     color: 'from-blue-600 to-sky-500',
     accentColor: '#004B87',
     iconColor: 'text-blue-500',
-    desc: 'Clareamento financeiro acelerado. Sinta a refrescância dos rendimentos constantes.',
+    desc: '',
     svgPath: 'luminous',
     imagePath: '/plano2.png'
   },
   {
     id: 'colgate-plax-fresh',
-    name: 'Colgate Plax Fresh',
-    slogan: 'Refrescância financeira de longo alcance.',
+    name: 'VIP 3',
+    slogan: '',
     price: 150.00,
     dailyIncome: 10.50, // 7% daily
     cycleDays: 30,
     color: 'from-teal-500 to-emerald-400',
     accentColor: '#00A3A6',
     iconColor: 'text-teal-500',
-    desc: 'Elimina as dúvidas e traz lucros de longo prazo com o poder refrescante do Plax.',
+    desc: '',
     svgPath: 'plax',
     imagePath: '/plano3.png'
   },
   {
     id: 'colgate-ortho-care',
-    name: 'Colgate Ortho Care',
-    slogan: 'Alinhamento impecável para o seu orçamento.',
+    name: 'VIP 4',
+    slogan: '',
     price: 500.00,
     dailyIncome: 40.00, // 8% daily
     cycleDays: 30,
     color: 'from-purple-600 to-indigo-500',
     accentColor: '#6D28D9',
     iconColor: 'text-purple-500',
-    desc: 'Para quem usa aparelho ou deseja alinhar sua conta bancária rumo à independência.',
+    desc: '',
     svgPath: 'ortho',
     imagePath: '/plano4.png'
   },
   {
     id: 'colgate-sorriso-vip',
-    name: 'Colgate Sorriso VIP Gold',
-    slogan: 'O brilho máximo digno de comercial de TV.',
+    name: 'VIP 5',
+    slogan: '',
     price: 1500.00,
     dailyIncome: 150.00, // 10% daily
     cycleDays: 30,
     color: 'from-amber-500 to-yellow-600',
     accentColor: '#D97706',
     iconColor: 'text-amber-500',
-    desc: 'O mais cobiçado tratamento estético para sua carteira. Rendimentos nível ouro.',
+    desc: '',
     svgPath: 'vip',
-    imagePath: '/plano5.png'
-  },
-  {
-    id: 'colgate-herbal-premium',
-    name: 'Colgate Herbal Organics',
-    slogan: 'Fórmula natural de crescimento financeiro.',
-    price: 5000.00,
-    dailyIncome: 600.00, // 12% daily
-    cycleDays: 30,
-    color: 'from-green-600 to-emerald-700',
-    accentColor: '#15803D',
-    iconColor: 'text-green-600',
-    desc: 'Extratos de ervas selecionadas que irrigam sua conta com lucros orgânicos incríveis.',
-    svgPath: 'herbal',
     imagePath: '/plano5.png'
   }
 ];
@@ -828,7 +814,6 @@ export default function ColgateInvestApp() {
                           <h4 className="text-sm font-bold text-slate-800">{plan.name}</h4>
                           <span className="text-[10px] font-bold text-colgate-red bg-red-50 px-2 py-0.5 rounded-full">5.0% - 7.0%/dia</span>
                         </div>
-                        <p className="text-[10px] text-slate-500 font-medium">{plan.slogan}</p>
                         <div className="grid grid-cols-3 gap-2 pt-2 text-[10px] text-slate-600 border-t border-slate-50">
                           <div>
                             <span className="block text-slate-400 font-semibold uppercase text-[8px]">Preço</span>
@@ -926,7 +911,6 @@ export default function ColgateInvestApp() {
                         <div className="flex justify-between items-start">
                           <h4 className="text-sm font-bold text-slate-800">{plan.name}</h4>
                         </div>
-                        <p className="text-[10px] text-slate-500 font-medium">{plan.slogan}</p>
                         <div className="grid grid-cols-3 gap-2 pt-2 text-[10px] text-slate-600 border-t border-slate-50">
                           <div>
                             <span className="block text-slate-400 font-semibold uppercase text-[8px]">Preço</span>
@@ -982,10 +966,8 @@ export default function ColgateInvestApp() {
                             renderProductSVG(plan.svgPath, plan.accentColor)
                           )}
                         </div>
-                        <div className="flex-1 space-y-1">
+                        <div className="flex-1 flex items-center">
                           <h3 className="text-sm font-bold text-slate-800">{plan.name}</h3>
-                          <p className="text-[10px] text-slate-400 font-semibold uppercase">{plan.slogan}</p>
-                          <p className="text-xs text-slate-600 leading-relaxed">{plan.desc}</p>
                         </div>
                       </div>
 
@@ -1718,7 +1700,6 @@ export default function ColgateInvestApp() {
             >
               <div className={`p-4 text-white text-center bg-gradient-to-r ${showBuyModal.color}`}>
                 <h3 className="text-base font-bold">Ativar {showBuyModal.name}</h3>
-                <p className="text-[10px] text-white/80">{showBuyModal.slogan}</p>
               </div>
 
               <div className="p-5 space-y-4">
