@@ -185,6 +185,11 @@ export default function ColgateInvestApp() {
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [rechargeAmount, setRechargeAmount] = useState('50.00');
   const [rechargeStep, setRechargeStep] = useState<'input' | 'qr'>('input');
+  const [rechargeCpf, setRechargeCpf] = useState('');
+  const [isGeneratingPix, setIsGeneratingPix] = useState(false);
+  const [rechargePixCode, setRechargePixCode] = useState('');
+  const [rechargeQrCodeBase64, setRechargeQrCodeBase64] = useState('');
+  const [currentTxId, setCurrentTxId] = useState<string | null>(null);
   const [copiedPixCode, setCopiedPixCode] = useState(false);
 
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -392,6 +397,91 @@ export default function ColgateInvestApp() {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, isTyping]);
 
+  // Success handler for verified LytronPay Pix payments
+  const handleRechargeSuccess = async (amt: number) => {
+    if (!sessionUser) return;
+    
+    const newBalance = profile.balance + amt;
+    const newTotalRecharge = profile.totalRecharge + amt;
+
+    const updatedProfile = {
+      ...profile,
+      balance: newBalance,
+      totalRecharge: newTotalRecharge
+    };
+
+    // DB: Insert transaction
+    const { data: txData, error: txError } = await supabase.from('transactions').insert([
+      {
+        user_id: sessionUser.id,
+        type: 'deposit',
+        amount: amt,
+        status: 'completed',
+        details: 'Recarga concluída via LytronPay PIX'
+      }
+    ]).select().single();
+
+    if (txError) {
+      console.error('Error saving deposit transaction:', txError);
+    }
+
+    // DB: Update profile balance
+    const { error: profileError } = await supabase.from('profiles').update({
+      balance: newBalance,
+      total_recharge: newTotalRecharge
+    }).eq('id', sessionUser.id);
+
+    if (profileError) {
+      console.error('Error updating profile balance after deposit:', profileError);
+    }
+
+    const newTx: Transaction = {
+      id: txData?.id || `tx-dep-${Date.now()}`,
+      type: 'deposit',
+      amount: amt,
+      status: 'completed',
+      date: new Date().toLocaleString('pt-BR'),
+      details: 'Recarga concluída via PIX'
+    };
+
+    const updatedTxs = [newTx, ...transactions];
+
+    setProfile(updatedProfile);
+    setTransactions(updatedTxs);
+
+    setShowRechargeModal(false);
+    setRechargeStep('input');
+    setCurrentTxId(null);
+    triggerToast(`Recarga de R$ ${amt.toFixed(2)} recebida com sucesso! Saldo atualizado.`, 'success');
+  };
+
+  // Poll LytronPay status to auto-approve payment when paid
+  useEffect(() => {
+    if (rechargeStep !== 'qr' || !currentTxId) return;
+
+    let isSubscribed = true;
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/lytron-status?txid=${currentTxId}`);
+        const data = await res.json();
+        
+        if (data.status === 'paid' || data.status === 'completed') {
+          clearInterval(pollInterval);
+          if (isSubscribed) {
+            handleRechargeSuccess(parseFloat(rechargeAmount));
+          }
+        }
+      } catch (err) {
+        console.error('Error polling payment status:', err);
+      }
+    }, 4000);
+
+    return () => {
+      isSubscribed = false;
+      clearInterval(pollInterval);
+    };
+  }, [rechargeStep, currentTxId, rechargeAmount]);
+
   // Support Pre-written Question Helper
   const handlePredefinedQuestion = (question: string) => {
     setUserInput(question);
@@ -454,71 +544,54 @@ export default function ColgateInvestApp() {
   };
 
   // Simulating Deposit (Recharge) flow
-  const handleConfirmRechargeRequest = () => {
+  const handleConfirmRechargeRequest = async () => {
     const amt = parseFloat(rechargeAmount);
     if (isNaN(amt) || amt < 10) {
       triggerToast('O valor mínimo para recarga é R$ 10,00', 'error');
       return;
     }
-    setRechargeStep('qr');
-  };
 
-  const handleSimulatePaymentCompletion = async () => {
-    if (!sessionUser) return;
-    const amt = parseFloat(rechargeAmount);
-    
-    const newBalance = profile.balance + amt;
-    const newTotalRecharge = profile.totalRecharge + amt;
+    const cleanCpf = rechargeCpf.replace(/\D/g, '');
+    if (cleanCpf.length !== 11) {
+      triggerToast('Por favor, informe um CPF válido com 11 dígitos.', 'error');
+      return;
+    }
 
-    const updatedProfile = {
-      ...profile,
-      balance: newBalance,
-      totalRecharge: newTotalRecharge
-    };
+    setIsGeneratingPix(true);
+    try {
+      const response = await fetch('/api/lytron-recharge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          amount: amt,
+          name: profile.username,
+          email: sessionUser?.email,
+          cpf: cleanCpf
+        })
+      });
 
-    // DB: Insert transaction
-    const { data: txData, error: txError } = await supabase.from('transactions').insert([
-      {
-        user_id: sessionUser.id,
-        type: 'deposit',
-        amount: amt,
-        status: 'completed',
-        details: 'Recarga aprovada via PIX'
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao emitir pagamento via PIX');
       }
-    ]).select().single();
 
-    if (txError) {
-      console.error('Error saving deposit transaction:', txError);
+      setRechargePixCode(data.copyPaste || '');
+      setRechargeQrCodeBase64(data.qrcode || '');
+      setCurrentTxId(data.txid || null);
+      setRechargeStep('qr');
+      triggerToast('PIX gerado com sucesso! Aguardando pagamento.', 'success');
+    } catch (error: any) {
+      console.error('Recharge PIX generation failure:', error);
+      triggerToast(error.message || 'Erro ao processar transação. Tente novamente.', 'error');
+    } finally {
+      setIsGeneratingPix(false);
     }
-
-    // DB: Update profile balance
-    const { error: profileError } = await supabase.from('profiles').update({
-      balance: newBalance,
-      total_recharge: newTotalRecharge
-    }).eq('id', sessionUser.id);
-
-    if (profileError) {
-      console.error('Error updating profile balance after deposit:', profileError);
-    }
-
-    const newTx: Transaction = {
-      id: txData?.id || `tx-dep-${Date.now()}`,
-      type: 'deposit',
-      amount: amt,
-      status: 'completed',
-      date: new Date().toLocaleString('pt-BR'),
-      details: 'Recarga aprovada via PIX'
-    };
-
-    const updatedTxs = [newTx, ...transactions];
-
-    setProfile(updatedProfile);
-    setTransactions(updatedTxs);
-
-    setShowRechargeModal(false);
-    setRechargeStep('input');
-    triggerToast(`Recarga de R$ ${amt.toFixed(2)} concluída com sucesso! Saldo atualizado.`, 'success');
   };
+
+
 
   // Simulating Withdrawal Flow
   const handleConfirmWithdrawal = async () => {
@@ -1654,7 +1727,12 @@ export default function ColgateInvestApp() {
               </div>
 
               <div className="p-5 space-y-4">
-                {rechargeStep === 'input' ? (
+                {isGeneratingPix ? (
+                  <div className="py-12 flex flex-col justify-center items-center gap-3">
+                    <RefreshCw className="w-8 h-8 text-colgate-red animate-spin" />
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wider animate-pulse">Gerando PIX com segurança...</p>
+                  </div>
+                ) : rechargeStep === 'input' ? (
                   <>
                     <div className="space-y-1 text-center">
                       <p className="text-[10px] text-slate-400 font-bold uppercase">Selecione ou digite um valor</p>
@@ -1683,6 +1761,17 @@ export default function ColgateInvestApp() {
                       ))}
                     </div>
 
+                    <div className="space-y-1 pt-1">
+                      <label className="text-[10px] text-slate-400 font-bold uppercase block">CPF do Pagador (para emissão do PIX)</label>
+                      <input 
+                        type="text" 
+                        placeholder="Apenas números (Ex: 12345678901)"
+                        value={rechargeCpf}
+                        onChange={(e) => setRechargeCpf(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-colgate-red font-medium text-slate-700"
+                      />
+                    </div>
+
                     <div className="space-y-2 pt-2">
                       <button
                         onClick={handleConfirmRechargeRequest}
@@ -1704,48 +1793,33 @@ export default function ColgateInvestApp() {
                       Aguardando confirmação de pagamento
                     </p>
 
-                    {/* PIX Mock QR Code representation */}
+                    {/* Real LytronPay QR Code representation */}
                     <div className="bg-slate-50 p-4 rounded-2xl inline-block border border-slate-200 relative">
-                      <svg className="w-32 h-32 mx-auto" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect width="100" height="100" rx="8" fill="white" />
-                        <rect x="10" y="10" width="20" height="20" fill="black" />
-                        <rect x="14" y="14" width="12" height="12" fill="white" />
-                        <rect x="16" y="16" width="8" height="8" fill="black" />
-
-                        <rect x="70" y="10" width="20" height="20" fill="black" />
-                        <rect x="74" y="14" width="12" height="12" fill="white" />
-                        <rect x="76" y="16" width="8" height="8" fill="black" />
-
-                        <rect x="10" y="70" width="20" height="20" fill="black" />
-                        <rect x="14" y="74" width="12" height="12" fill="white" />
-                        <rect x="16" y="16" width="8" height="8" fill="black" />
-
-                        {/* Random center pixel points */}
-                        <rect x="40" y="20" width="6" height="6" fill="black" />
-                        <rect x="50" y="10" width="6" height="10" fill="black" />
-                        <rect x="35" y="45" width="10" height="6" fill="black" />
-                        <rect x="55" y="40" width="12" height="12" fill="black" />
-                        <rect x="45" y="65" width="8" height="8" fill="black" />
-                        <rect x="75" y="75" width="10" height="10" fill="black" />
-                        <rect x="40" y="80" width="12" height="6" fill="black" />
-                        {/* Red PIX Logo center */}
-                        <rect x="44" y="44" width="12" height="12" rx="2" fill="#00A3A6" />
-                        <circle cx="50" cy="50" r="3" fill="white" />
-                      </svg>
+                      {rechargeQrCodeBase64 ? (
+                        <img 
+                          src={rechargeQrCodeBase64.startsWith('http') || rechargeQrCodeBase64.startsWith('data:image/') ? rechargeQrCodeBase64 : `data:image/png;base64,${rechargeQrCodeBase64}`} 
+                          className="w-36 h-36 mx-auto rounded-xl shadow-sm bg-white p-1" 
+                          alt="PIX QR Code" 
+                        />
+                      ) : (
+                        <div className="w-36 h-36 mx-auto flex items-center justify-center bg-slate-100 text-[10px] text-slate-400 font-bold rounded-xl">
+                          Sem QR Code
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-2">
-                      <p className="text-xs font-bold text-slate-800">PIX Copia e Cola Colgate</p>
+                      <p className="text-xs font-bold text-slate-800 font-sans">Código PIX Copia e Cola</p>
                       <div className="flex gap-2">
-                        <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-[10px] font-semibold text-slate-500 overflow-hidden text-ellipsis whitespace-nowrap">
-                          colgateinvest_pix_charge_{Math.floor(100000 + Math.random() * 900000)}@pix.colgate.com.br
+                        <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-[9px] font-mono text-slate-500 overflow-y-auto max-h-16 break-all text-left select-all">
+                          {rechargePixCode}
                         </div>
                         <button
                           onClick={() => {
-                            copyToClipboard(`colgateinvest_pix_charge_${Math.floor(100000 + Math.random() * 900000)}@pix.colgate.com.br`, "PIX Copia e Cola");
+                            copyToClipboard(rechargePixCode, "PIX Copia e Cola");
                             setCopiedPixCode(true);
                           }}
-                          className="bg-slate-100 hover:bg-slate-200 p-2 rounded-xl text-slate-600 transition-colors shrink-0"
+                          className="bg-slate-100 hover:bg-slate-200 p-2.5 rounded-xl text-slate-600 transition-colors shrink-0 flex items-center justify-center"
                         >
                           <Copy className="w-4 h-4" />
                         </button>
@@ -1754,7 +1828,7 @@ export default function ColgateInvestApp() {
 
                     <div className="space-y-2 pt-2 border-t border-slate-100">
                       <button
-                        onClick={handleSimulatePaymentCompletion}
+                        onClick={() => handleRechargeSuccess(parseFloat(rechargeAmount))}
                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-xs shadow-sm transition-all"
                       >
                         Confirmar Pagamento (Simular PIX)
