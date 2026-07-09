@@ -233,6 +233,8 @@ export async function POST(request: Request) {
 
       const pixKey = userProfile.pix_key;
       const pixType = userProfile.pix_type || 'cpf';
+      const pixTypeMap: Record<string, string> = { cpf: 'cpf', email: 'email', telefone: 'phone', aleatoria: 'evp' };
+      const mappedPixType = pixTypeMap[pixType] || pixType;
 
       if (!pixKey) {
         return jsonResponse({ error: 'Usuário não possui uma chave PIX cadastrada' }, 400);
@@ -251,7 +253,7 @@ export async function POST(request: Request) {
 
       const payoutPayload = {
         amount: netAmount,
-        pix: { type: pixType, key: pixKey },
+        pix: { type: mappedPixType, key: pixKey },
         description: `Saque Colgate - ${userProfile.username}`,
         idempotency_key: `payout-${transactionId}`
       };
