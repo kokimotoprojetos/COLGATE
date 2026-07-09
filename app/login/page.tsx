@@ -9,8 +9,7 @@ import {
   User as UserIcon, 
   ShieldCheck, 
   AlertCircle,
-  ArrowRight,
-  Sparkles
+  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -136,9 +135,7 @@ export default function AuthPage() {
       >
         {/* Header da Colgate */}
         <div className="bg-colgate-red text-white p-6 flex flex-col items-center relative overflow-hidden">
-          <div className="absolute right-0 bottom-0 top-0 w-1/3 opacity-10 pointer-events-none flex items-center justify-center">
-            <Sparkles className="w-32 h-32 text-white" />
-          </div>
+
           
           <img 
             src="/logo.png" 
