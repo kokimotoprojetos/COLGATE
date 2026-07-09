@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
@@ -39,12 +39,6 @@ interface Transaction {
   status: 'pending' | 'completed' | 'failed';
   date: string;
   details: string;
-}
-
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
 }
 
 // Fixed Colgate plans catalog
@@ -127,7 +121,7 @@ export default function ColgateInvestApp() {
   const [loadingAuth, setLoadingAuth] = useState(true);
 
   // Current active navigation tab
-  const [activeTab, setActiveTab] = useState<'home' | 'products' | 'support' | 'team' | 'profile'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'products' | 'team' | 'profile'>('home');
   
   // App States
   const [profile, setProfile] = useState<UserProfile>({
@@ -144,18 +138,6 @@ export default function ColgateInvestApp() {
 
   const [activePlans, setActivePlans] = useState<PurchasedPlan[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-
-  // Support Chat states
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      id: 'msg-start',
-      role: 'assistant',
-      content: 'Olá! Sou a Dra. Sorriso, sua consultora de bem-estar bucal e financeiro na Colgate Investimentos. Como posso clarear suas dúvidas hoje? Posso te explicar sobre nossos planos de rendimento, como fazer saques via PIX ou dar dicas de escovação!'
-    }
-  ]);
-  const [userInput, setUserInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const chatBottomRef = useRef<HTMLDivElement>(null);
 
   // Modals States
   const [showRechargeModal, setShowRechargeModal] = useState(false);
@@ -368,11 +350,6 @@ export default function ColgateInvestApp() {
     return () => clearInterval(syncInterval);
   }, [profile.balance, profile.totalIncome, activePlans, sessionUser]);
 
-  // Autoscroll chat
-  useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages, isTyping]);
-
   // Success handler for verified LytronPay Pix payments
   const handleRechargeSuccess = async (amt: number) => {
     if (!sessionUser) return;
@@ -457,67 +434,6 @@ export default function ColgateInvestApp() {
       clearInterval(pollInterval);
     };
   }, [rechargeStep, currentTxId, rechargeAmount]);
-
-  // Support Pre-written Question Helper
-  const handlePredefinedQuestion = (question: string) => {
-    setUserInput(question);
-    sendMessage(question);
-  };
-
-  // Chat message submission to Gemini API Support
-  const sendMessage = async (overrideInput?: string) => {
-    const promptToSend = overrideInput || userInput;
-    if (!promptToSend.trim()) return;
-
-    const newUserMessage: ChatMessage = {
-      id: `msg-user-${Date.now()}`,
-      role: 'user',
-      content: promptToSend
-    };
-
-    setChatMessages(prev => [...prev, newUserMessage]);
-    if (!overrideInput) setUserInput('');
-    setIsTyping(true);
-
-    try {
-      const response = await fetch('/app/api/support', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [...chatMessages, newUserMessage].map(m => ({
-            role: m.role,
-            content: m.content
-          })),
-          userProfile: {
-            balance: profile.balance,
-            activePlansCount: activePlans.length
-          }
-        })
-      });
-
-      const data = await response.json();
-      
-      const newAssistantMessage: ChatMessage = {
-        id: `msg-assistant-${Date.now()}`,
-        role: 'assistant',
-        content: data.reply || 'Peço desculpas, tive uma oscilação na rede e não consegui processar sua dúvida. Pode tentar de novo?'
-      };
-
-      setChatMessages(prev => [...prev, newAssistantMessage]);
-    } catch (error) {
-      console.error(error);
-      setChatMessages(prev => [
-        ...prev,
-        {
-          id: `msg-error-${Date.now()}`,
-          role: 'assistant',
-          content: 'Desculpe, estou enfrentando uma pequena instabilidade de conexão no momento. De qualquer forma, lembre-se: saques mínimos são de R$ 10,00 e o PIX cai em minutos! O que mais posso ajudar?'
-        }
-      ]);
-    } finally {
-      setIsTyping(false);
-    }
-  };
 
   // Simulating Deposit (Recharge) flow
   const handleConfirmRechargeRequest = async () => {

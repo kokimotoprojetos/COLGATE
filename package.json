@@ -10,7 +10,6 @@
     "clean": "next clean"
   },
   "dependencies": {
-    "@google/genai": "^2.4.0",
     "@hookform/resolvers": "^5.2.1",
     "@iconify-json/streamline-color": "^1.2.2",
     "@iconify/react": "^6.0.2",
