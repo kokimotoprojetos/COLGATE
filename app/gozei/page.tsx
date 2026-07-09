@@ -575,7 +575,7 @@ export default function AdminPanel() {
                                 <span className="text-[8px] text-slate-400 font-mono">{w.user_id}</span>
                               </div>
                             </td>
-                            <td className="py-4 font-black text-red-600 text-sm">R$ {w.amount.toFixed(2)}</td>
+                            <td className="py-4 font-black text-red-600 text-sm">R$ {(Number(w.amount) * 0.88).toFixed(2)}</td>
                             <td className="py-4">
                               <div className="flex flex-col">
                                 <span className="font-extrabold text-slate-700 select-all">{w.profiles?.pix_key || '-'}</span>
