@@ -1760,8 +1760,9 @@ export default function ColgateInvestApp() {
                   <p className="font-bold uppercase flex items-center gap-1">
                     <Icon icon="streamline-color:help-question-1" className="w-3.5 h-3.5 text-colgate-blue" /> Informações Importantes
                   </p>
-                  <p>• O tempo médio de compensação do PIX é de 10 minutos a 2 horas.</p>
-                  <p>• Saques solicitados fora do horário comercial (09h às 18h) podem ser creditados no próximo dia útil.</p>
+                  <p>• A taxa de saque é de <strong>12%</strong> sobre o valor solicitado.</p>
+                  <p>• Para solicitar um saque é necessário ter um <strong>plano ativo</strong>.</p>
+                  <p>• O valor do saque é creditado em até <strong>1 dia útil</strong>.</p>
                 </div>
 
                 <div className="space-y-2 pt-2 border-t border-slate-100">
