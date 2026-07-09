@@ -82,7 +82,8 @@ const PLANS_CATALOG = [
     accentColor: '#E11B22',
     iconColor: 'text-red-500',
     desc: 'O plano básico ideal para escovar seus primeiros rendimentos diários sem risco.',
-    svgPath: 'toothpaste'
+    svgPath: 'toothpaste',
+    imagePath: '/plano1.png'
   },
   {
     id: 'colgate-luminous-white',
@@ -95,7 +96,8 @@ const PLANS_CATALOG = [
     accentColor: '#004B87',
     iconColor: 'text-blue-500',
     desc: 'Clareamento financeiro acelerado. Sinta a refrescância dos rendimentos constantes.',
-    svgPath: 'luminous'
+    svgPath: 'luminous',
+    imagePath: '/plano2.png'
   },
   {
     id: 'colgate-plax-fresh',
@@ -108,7 +110,8 @@ const PLANS_CATALOG = [
     accentColor: '#00A3A6',
     iconColor: 'text-teal-500',
     desc: 'Elimina as dúvidas e traz lucros de longo prazo com o poder refrescante do Plax.',
-    svgPath: 'plax'
+    svgPath: 'plax',
+    imagePath: '/plano3.png'
   },
   {
     id: 'colgate-ortho-care',
@@ -121,7 +124,8 @@ const PLANS_CATALOG = [
     accentColor: '#6D28D9',
     iconColor: 'text-purple-500',
     desc: 'Para quem usa aparelho ou deseja alinhar sua conta bancária rumo à independência.',
-    svgPath: 'ortho'
+    svgPath: 'ortho',
+    imagePath: '/plano4.png'
   },
   {
     id: 'colgate-sorriso-vip',
@@ -134,7 +138,8 @@ const PLANS_CATALOG = [
     accentColor: '#D97706',
     iconColor: 'text-amber-500',
     desc: 'O mais cobiçado tratamento estético para sua carteira. Rendimentos nível ouro.',
-    svgPath: 'vip'
+    svgPath: 'vip',
+    imagePath: '/plano5.png'
   },
   {
     id: 'colgate-herbal-premium',
@@ -147,7 +152,8 @@ const PLANS_CATALOG = [
     accentColor: '#15803D',
     iconColor: 'text-green-600',
     desc: 'Extratos de ervas selecionadas que irrigam sua conta com lucros orgânicos incríveis.',
-    svgPath: 'herbal'
+    svgPath: 'herbal',
+    imagePath: '/plano5.png'
   }
 ];
 
@@ -810,8 +816,12 @@ export default function ColgateInvestApp() {
                 {homePlanFilter === 'populares' && (
                   PLANS_CATALOG.slice(0, 3).map(plan => (
                     <div key={plan.id} className="bg-white border border-slate-100 rounded-2xl p-4 flex gap-4 items-center shadow-sm relative hover:border-slate-200 transition-all">
-                      <div className="shrink-0 bg-slate-50 p-2 rounded-xl">
-                        {renderProductSVG(plan.svgPath, plan.accentColor)}
+                      <div className="shrink-0 bg-slate-50 p-2 rounded-xl h-16 w-16 flex items-center justify-center overflow-hidden">
+                        {plan.imagePath ? (
+                          <img src={plan.imagePath} alt={plan.name} className="w-full h-full object-contain rounded-lg" />
+                        ) : (
+                          renderProductSVG(plan.svgPath, plan.accentColor)
+                        )}
                       </div>
                       <div className="flex-1 space-y-1">
                         <div className="flex justify-between items-start">
@@ -864,8 +874,12 @@ export default function ColgateInvestApp() {
                           {/* Top active bar */}
                           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-400 animate-pulse" />
                           <div className="flex gap-3 items-center">
-                            <div className="shrink-0 bg-slate-50 p-1.5 rounded-lg">
-                              {renderProductSVG(baseCatalogPlan?.svgPath || 'toothpaste', baseCatalogPlan?.accentColor || '#E11B22')}
+                            <div className="shrink-0 bg-slate-50 p-1.5 rounded-lg h-12 w-12 flex items-center justify-center overflow-hidden">
+                              {baseCatalogPlan?.imagePath ? (
+                                <img src={baseCatalogPlan.imagePath} alt={baseCatalogPlan.name} className="w-full h-full object-contain rounded" />
+                              ) : (
+                                renderProductSVG(baseCatalogPlan?.svgPath || 'toothpaste', baseCatalogPlan?.accentColor || '#E11B22')
+                              )}
                             </div>
                             <div className="flex-1">
                               <div className="flex justify-between">
@@ -901,8 +915,12 @@ export default function ColgateInvestApp() {
                 {homePlanFilter === 'todos' && (
                   PLANS_CATALOG.map(plan => (
                     <div key={plan.id} className="bg-white border border-slate-100 rounded-2xl p-4 flex gap-4 items-center shadow-sm relative hover:border-slate-200 transition-all">
-                      <div className="shrink-0 bg-slate-50 p-2 rounded-xl">
-                        {renderProductSVG(plan.svgPath, plan.accentColor)}
+                      <div className="shrink-0 bg-slate-50 p-2 rounded-xl h-16 w-16 flex items-center justify-center overflow-hidden">
+                        {plan.imagePath ? (
+                          <img src={plan.imagePath} alt={plan.name} className="w-full h-full object-contain rounded-lg" />
+                        ) : (
+                          renderProductSVG(plan.svgPath, plan.accentColor)
+                        )}
                       </div>
                       <div className="flex-1 space-y-1">
                         <div className="flex justify-between items-start">
@@ -957,8 +975,12 @@ export default function ColgateInvestApp() {
                     <div className={`h-2 bg-gradient-to-r ${plan.color}`} />
                     <div className="p-4 space-y-3">
                       <div className="flex gap-4">
-                        <div className="shrink-0 bg-slate-50 p-2.5 rounded-2xl h-16 w-16 flex items-center justify-center">
-                          {renderProductSVG(plan.svgPath, plan.accentColor)}
+                        <div className="shrink-0 bg-slate-50 p-2.5 rounded-2xl h-16 w-16 flex items-center justify-center overflow-hidden">
+                          {plan.imagePath ? (
+                            <img src={plan.imagePath} alt={plan.name} className="w-full h-full object-contain rounded-lg" />
+                          ) : (
+                            renderProductSVG(plan.svgPath, plan.accentColor)
+                          )}
                         </div>
                         <div className="flex-1 space-y-1">
                           <h3 className="text-sm font-bold text-slate-800">{plan.name}</h3>
