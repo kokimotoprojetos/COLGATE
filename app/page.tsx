@@ -357,7 +357,7 @@ export default function ColgateInvestApp() {
   };
 
 
-  // Success handler for verified LytronPay Pix payments
+  // Success handler for verified PIX payments
   const handleRechargeSuccess = async (amt: number) => {
     if (!sessionUser) return;
     
@@ -377,7 +377,7 @@ export default function ColgateInvestApp() {
         type: 'deposit',
         amount: amt,
         status: 'completed',
-        details: 'Recarga concluída via LytronPay PIX'
+        details: 'Recarga concluída via PIX'
       }
     ]).select().single();
 
@@ -415,14 +415,14 @@ export default function ColgateInvestApp() {
     triggerToast(`Recarga de R$ ${amt.toFixed(2)} recebida com sucesso! Saldo atualizado.`, 'success');
   };
 
-  // Poll LytronPay status to auto-approve payment when paid
+  // Poll payment status to auto-approve when paid
   useEffect(() => {
     if (rechargeStep !== 'qr' || !currentTxId) return;
 
     let isSubscribed = true;
     const pollInterval = setInterval(async () => {
       try {
-        const res = await fetch(`/api/lytron-status?txid=${currentTxId}`);
+        const res = await fetch(`/api/pix-status?txid=${currentTxId}`);
         const data = await res.json();
         
         if (data.status === 'paid' || data.status === 'completed') {
@@ -454,7 +454,7 @@ export default function ColgateInvestApp() {
 
     setIsGeneratingPix(true);
     try {
-      const response = await fetch('/api/lytron-recharge', {
+      const response = await fetch('/api/pix-recharge', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -1568,7 +1568,7 @@ export default function ColgateInvestApp() {
                       Aguardando confirmação de pagamento
                     </p>
 
-                    {/* Real LytronPay QR Code representation */}
+                    {/* QR Code representation */}
                     <div className="bg-slate-50 p-4 rounded-2xl inline-block border border-slate-200 relative">
                       {rechargePixCode || rechargeQrCodeBase64 ? (
                         <img 

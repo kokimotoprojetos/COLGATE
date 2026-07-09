@@ -195,7 +195,7 @@ export default function AdminPanel() {
   };
 
   const handleApproveWithdrawal = async (txId: string) => {
-    if (!confirm('Deseja realmente aprovar e pagar este saque via API da LytronPay?')) return;
+    if (!confirm('Deseja realmente aprovar e pagar este saque?')) return;
     setLoading(true);
     try {
       const response = await fetch('/api/admin', {
@@ -371,7 +371,7 @@ export default function AdminPanel() {
                 </div>
                 <p className="text-[10px] text-slate-400 font-extrabold uppercase">Depósitos Reais (PIX)</p>
                 <h3 className="text-2xl font-black text-emerald-600">R$ {stats.totalDeposited.toFixed(2)}</h3>
-                <p className="text-[9px] text-emerald-400 font-semibold">Via LytronPay / webhook</p>
+                <p className="text-[9px] text-emerald-400 font-semibold">Via webhook</p>
               </div>
 
               <div className="bg-white border border-violet-100 rounded-3xl p-5 shadow-sm space-y-2 hover:shadow-md transition-shadow relative overflow-hidden">

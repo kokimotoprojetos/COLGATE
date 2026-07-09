@@ -242,7 +242,7 @@ export async function POST(request: Request) {
       const apiSecret = cleanKey(process.env.LYTRON_API_SECRET || '');
 
       if (!apiKey || !apiSecret) {
-        return jsonResponse({ error: 'Chaves da API da LytronPay não configuradas no backend' }, 500);
+        return jsonResponse({ error: 'Chaves da API de pagamento não configuradas no backend' }, 500);
       }
 
       const grossAmount = parseFloat(tx.amount);
@@ -275,8 +275,8 @@ export async function POST(request: Request) {
         const resData = await response.json();
 
         if (!response.ok) {
-          console.error('LytronPay payout API error:', resData);
-          return jsonResponse({ error: resData.message || 'Erro ao processar saque na API da LytronPay' }, response.status);
+          console.error('Payment payout API error:', resData);
+          return jsonResponse({ error: resData.message || 'Erro ao processar saque na API de pagamento' }, response.status);
         }
 
         const { error: updTxErr } = await supabaseAdmin
@@ -288,7 +288,7 @@ export async function POST(request: Request) {
 
         return jsonResponse({ 
           success: true, 
-          message: `Saque de R$ ${grossAmount.toFixed(2)} aprovado. Taxa de 12% (R$ ${fee.toFixed(2)}) aplicada. Enviado R$ ${netAmount.toFixed(2)} via LytronPay.`,
+          message: `Saque de R$ ${grossAmount.toFixed(2)} aprovado. Taxa de 12% (R$ ${fee.toFixed(2)}) aplicada. Enviado R$ ${netAmount.toFixed(2)} via pagamento.`,
           payoutId: resData.payoutId,
           grossAmount,
           fee,
