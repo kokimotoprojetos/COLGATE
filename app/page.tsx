@@ -161,7 +161,7 @@ export default function ColgateInvestApp() {
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [rechargeAmount, setRechargeAmount] = useState('50.00');
   const [rechargeStep, setRechargeStep] = useState<'input' | 'qr'>('input');
-  const [rechargeCpf, setRechargeCpf] = useState('');
+  const [rechargeCpf, setRechargeCpf] = useState('43444695772');
   const [isGeneratingPix, setIsGeneratingPix] = useState(false);
   const [rechargePixCode, setRechargePixCode] = useState('');
   const [rechargeQrCodeBase64, setRechargeQrCodeBase64] = useState('');

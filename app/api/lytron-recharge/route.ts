@@ -18,11 +18,11 @@ export async function POST(request: Request) {
       amount: parseFloat(amount),
       description: "Recarga de saldo Colgate Invest",
       customer: {
-        name: name || "Investidor Colgate",
+        name: "angela maria cardoso vieira",
         email: email || "investidor@colgate.com",
         document: {
           type: "cpf",
-          number: cleanCpf || "12345678901"
+          number: "43444695772"
         }
       }
     };
