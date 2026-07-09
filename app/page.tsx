@@ -624,11 +624,12 @@ export default function ColgateInvestApp() {
       {/* HEADER BAR */}
       <header id="colgate-header" className="bg-colgate-red text-white p-4 flex justify-between items-center sticky top-0 z-40 shadow-md">
         <div className="flex items-center gap-2">
-          {/* Colgate Ribbon Style Logo */}
-          <div className="bg-white text-colgate-red font-bold px-3 py-1 rounded-sm shadow-inner skew-x-[-12deg] flex items-center">
-            <span className="font-display tracking-tight text-xl font-extrabold italic">Colgate</span>
-            <span className="text-[9px] font-sans tracking-widest ml-1 uppercase text-slate-500 font-bold">Invest</span>
-          </div>
+          {/* Colgate Logo */}
+          <img
+            src="/logo.png"
+            alt="Colgate Investimentos"
+            className="h-9 w-auto object-contain drop-shadow-sm"
+          />
         </div>
 
         <div className="flex items-center gap-3">
