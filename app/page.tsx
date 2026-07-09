@@ -1226,10 +1226,10 @@ export default function ColgateInvestApp() {
                   <label className="text-[10px] text-slate-400 font-semibold block uppercase">Link de Afiliado Exclusivo</label>
                   <div className="flex gap-2">
                     <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-500 overflow-hidden text-ellipsis whitespace-nowrap flex items-center">
-                      https://www.colgates.online/?ref={profile.idCode}
+                      {process.env.NEXT_PUBLIC_APP_URL || 'https://www.colgates.online'}/?ref={profile.idCode}
                     </div>
                     <button 
-                      onClick={() => copyToClipboard(`https://www.colgates.online/?ref=${profile.idCode}`, "Link de afiliado")}
+                      onClick={() => copyToClipboard(`${process.env.NEXT_PUBLIC_APP_URL || 'https://www.colgates.online'}/?ref=${profile.idCode}`, "Link de afiliado")}
                       className="bg-slate-100 hover:bg-slate-200 p-2.5 rounded-xl text-slate-600 transition-colors shrink-0"
                     >
                       <Icon icon="streamline-color:copy-paste" className="w-4 h-4" />

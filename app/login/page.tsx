@@ -15,6 +15,9 @@ export default function AuthPage() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   
+  // Referral tracking
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  
   // Loading & error states
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -30,6 +33,15 @@ export default function AuthPage() {
     };
     checkUser();
   }, [router]);
+
+  // Read referral code from URL (?ref=COLG-XXXX)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      setReferralCode(ref);
+    }
+  }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,14 +74,15 @@ export default function AuthPage() {
         router.push('/');
       } else {
         // REGISTER FLOW
+        const metadata: Record<string, any> = { username };
+        if (referralCode) {
+          metadata.referred_by = referralCode;
+        }
+
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: {
-              username: username
-            }
-          }
+          options: { data: metadata }
         });
 
         if (signUpError) throw signUpError;
@@ -87,19 +100,22 @@ export default function AuthPage() {
             const idCode = 'COLG-' + Math.floor(1000 + Math.random() * 9000);
             
             // Try to create user profile in profiles table (client fallback)
-            const { error: profileError } = await supabase.from('profiles').insert([
-              {
-                id: user.id,
-                username: username,
-                balance: 13.00, // R$ 13.00 register bonus
-                total_recharge: 0.00,
-                total_withdrawal: 0.00,
-                total_income: 0.00,
-                pix_key: '',
-                pix_type: 'cpf',
-                id_code: idCode
-              }
-            ]);
+            const profile: Record<string, any> = {
+              id: user.id,
+              username: username,
+              balance: 13.00,
+              total_recharge: 0.00,
+              total_withdrawal: 0.00,
+              total_income: 0.00,
+              pix_key: '',
+              pix_type: 'cpf',
+              id_code: idCode
+            };
+            if (referralCode) {
+              profile.referred_by = referralCode;
+            }
+
+            const { error: profileError } = await supabase.from('profiles').insert([profile]);
 
             if (profileError) {
               console.error('Error creating profile client-side:', profileError);

@@ -84,7 +84,7 @@ CREATE POLICY "Permitir inserção de transações para si mesmo"
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.profiles (id, username, balance, total_recharge, total_withdrawal, total_income, pix_key, pix_type, id_code)
+  INSERT INTO public.profiles (id, username, balance, total_recharge, total_withdrawal, total_income, pix_key, pix_type, id_code, referred_by)
   VALUES (
     new.id,
     COALESCE(new.raw_user_meta_data->>'username', 'Investidor Colgate'),
@@ -94,7 +94,8 @@ BEGIN
     0.00,
     '',
     'cpf',
-    'COLG-' || floor(1000 + random() * 9000)::text
+    'COLG-' || floor(1000 + random() * 9000)::text,
+    new.raw_user_meta_data->>'referred_by'
   );
   RETURN NEW;
 END;
