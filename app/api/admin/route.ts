@@ -191,8 +191,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Chaves da API da LytronPay não configuradas no backend' }, { status: 500 });
       }
 
+      const grossAmount = parseFloat(tx.amount);
+      const fee = grossAmount * 0.12;
+      const netAmount = grossAmount - fee;
+
       const payoutPayload = {
-        amount: parseFloat(tx.amount),
+        amount: netAmount,
         pix: { type: pixType, key: pixKey },
         description: `Saque Colgate - ${userProfile.username}`,
         idempotency_key: `payout-${transactionId}`
@@ -230,8 +234,11 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ 
           success: true, 
-          message: 'Saque aprovado e pago com sucesso via API da LytronPay.',
-          payoutId: resData.payoutId 
+          message: `Saque de R$ ${grossAmount.toFixed(2)} aprovado. Taxa de 12% (R$ ${fee.toFixed(2)}) aplicada. Enviado R$ ${netAmount.toFixed(2)} via LytronPay.`,
+          payoutId: resData.payoutId,
+          grossAmount,
+          fee,
+          netAmount
         });
 
       } catch (payError: any) {

@@ -519,6 +519,8 @@ export default function ColgateInvestApp() {
 
     setWithdrawError('');
 
+    const fee = amt * 0.12;
+    const netAmount = amt - fee;
     const newBalance = profile.balance - amt;
     const newTotalWithdrawal = profile.totalWithdrawal + amt;
 
@@ -537,7 +539,7 @@ export default function ColgateInvestApp() {
         type: 'withdrawal',
         amount: amt,
         status: 'pending',
-        details: `Saque PIX para ${withdrawName.trim()} | chave: ${key}`
+        details: `Saque PIX para ${withdrawName.trim()} | chave: ${key} | taxa: ${fee.toFixed(2)} | liquido: ${netAmount.toFixed(2)}`
       }
     ]).select().single();
 
@@ -563,7 +565,7 @@ export default function ColgateInvestApp() {
       amount: amt,
       status: 'pending',
       date: new Date().toLocaleString('pt-BR'),
-      details: `Saque PIX para ${withdrawName.trim()} | chave: ${key}`
+      details: `Saque PIX para ${withdrawName.trim()} | chave: ${key} | taxa: ${fee.toFixed(2)} | liquido: ${netAmount.toFixed(2)}`
     };
 
     const updatedTxs = [newTx, ...transactions];
@@ -574,7 +576,7 @@ export default function ColgateInvestApp() {
     setShowWithdrawModal(false);
     setWithdrawAmount('');
     setWithdrawName('');
-    triggerToast(`Saque de R$ ${amt.toFixed(2)} solicitado com sucesso!`, 'success');
+    triggerToast(`Saque de R$ ${amt.toFixed(2)} solicitado! Taxa de 12% aplicada. Você receberá R$ ${netAmount.toFixed(2)}.`, 'success');
 
     // No simulation: withdrawal remains pending until approved and processed by administrator.
   };
@@ -1681,6 +1683,32 @@ export default function ColgateInvestApp() {
                     </button>
                   </div>
                 </div>
+
+                {/* Fee calculation display */}
+                {(() => {
+                  const amt = parseFloat(withdrawAmount);
+                  if (!isNaN(amt) && amt > 0) {
+                    const fee = amt * 0.12;
+                    const net = amt - fee;
+                    return (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1.5">
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-slate-500 font-medium">Valor solicitado</span>
+                          <span className="font-bold text-slate-800">R$ {amt.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-slate-500 font-medium">Taxa de saque (12%)</span>
+                          <span className="font-bold text-red-500">- R$ {fee.toFixed(2)}</span>
+                        </div>
+                        <div className="border-t border-amber-200 pt-1.5 flex justify-between text-[11px]">
+                          <span className="font-bold text-slate-600">Você recebe</span>
+                          <span className="font-black text-emerald-600">R$ {net.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
 
                 {!profile.pixKey && (
                   <div className="space-y-2">
