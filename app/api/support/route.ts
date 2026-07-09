@@ -1,15 +1,18 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 
-// Initialize the GoogleGenAI client with server-side API key and correct headers
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
+function getAI() {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+  return new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
+      }
     }
-  }
-});
+  });
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -50,6 +53,14 @@ Instruções importantes:
 - Ajude os usuários a resolverem suas dúvidas sobre como recarregar, como comprar um plano, ou como efetuar saques.
 - Se o usuário perguntar se a plataforma é real, diga de forma alegre e profissional que este é um simulador de investimentos de alta fidelidade e plataforma de engajamento da marca Colgate para educar e divertir os usuários sobre o mercado financeiro e cuidados com o sorriso, mas que todas as mecânicas de saldo, rendimento acumulado por segundo, e simulação de PIX funcionam perfeitamente na interface!
 - Seja concisa, mas completa, usando espaçamentos e marcadores se necessário.`;
+
+    const ai = getAI();
+    if (!ai) {
+      return NextResponse.json(
+        { error: "O serviço de atendimento AI está temporariamente indisponível. A chave da API Gemini não foi configurada." },
+        { status: 503 }
+      );
+    }
 
     // Map history to the contents structure expected by generateContent
     const contents = messages.map((m: any) => ({
