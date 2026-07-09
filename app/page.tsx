@@ -978,19 +978,7 @@ export default function ColgateInvestApp() {
                 </button>
               </div>
 
-              {/* SCROLLING ANNOUNCEMENT TICKER */}
-              <div id="announcement-ticker" className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex items-center gap-3">
-                <div className="bg-amber-100 p-1.5 rounded-lg text-amber-800">
-                  <Icon icon="streamline-color:magic-wand-2" className="w-4 h-4 animate-spin" />
-                </div>
-                <div className="flex-1 overflow-hidden h-5 relative">
-                  <div className="absolute whitespace-nowrap animate-[marquee_18s_linear_infinite] text-xs font-semibold text-amber-800 flex gap-6">
-                    <span>Bônus Grátis de R$ 10,00 adicionado para novos cadastros!</span>
-                    <span>Colgate Total 12 Active rendendo 5.0% ao dia já disponível!</span>
-                    <span>Indique amigos na aba Equipe e ganhe comissão direta de 10% instantaneamente!</span>
-                  </div>
-                </div>
-              </div>
+
 
               {/* EARNINGS DASHBOARD CARD */}
               <div id="earnings-card" className="bg-colgate-blue rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
