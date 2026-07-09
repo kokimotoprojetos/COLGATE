@@ -1534,7 +1534,7 @@ export default function ColgateInvestApp() {
                     </div>
 
                     <div className="grid grid-cols-3 gap-2">
-                      {['20.00', '50.00', '100.00', '500.00', '1500.00', '5000.00'].map(val => (
+                      {['25.00', '50.00', '100.00', '500.00', '1500.00', '5000.00'].map(val => (
                         <button
                           key={val}
                           onClick={() => setRechargeAmount(val)}
