@@ -422,13 +422,14 @@ export default function ColgateInvestApp() {
 
     let isSubscribed = true;
     let attempts = 0;
-    const MAX_ATTEMPTS = 30; // 30 attempts * 2s = 60 seconds
+    const MAX_ATTEMPTS = 900; // 900 attempts * 2s ≈ 30 min timeout for delayed payments
 
     const pollInterval = setInterval(async () => {
       attempts++;
       try {
         const res = await fetch(`/api/pix-status?txid=${currentTxId}`);
         const data = await res.json();
+        console.log('Polling PIX status', { txid: currentTxId, attempts, data });
 
         const rawStatus = data.status || (data.charge && data.charge.status) || '';
         const chargeStatus = typeof rawStatus === 'string' ? rawStatus.toLowerCase() : '';
