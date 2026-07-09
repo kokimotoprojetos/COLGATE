@@ -654,37 +654,6 @@ export default function ColgateInvestApp() {
               exit={{ opacity: 0 }}
               className="p-4 space-y-4"
             >
-              {/* BRAND PROMO HERO BANNER */}
-              <div id="promo-banner" className="bg-gradient-to-r from-colgate-red to-rose-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
-                <div className="absolute right-0 bottom-0 top-0 w-1/3 opacity-20 pointer-events-none flex items-center justify-center">
-                  <Sparkles className="w-24 h-24 text-white animate-pulse" />
-                </div>
-                <div className="relative z-10 space-y-2">
-                  <span className="bg-white/20 text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-full">
-                    Parceria de Fidelidade Oficial
-                  </span>
-                  <h2 className="text-xl font-display font-extrabold tracking-tight">
-                    O Sorriso do Seu Futuro Financeiro
-                  </h2>
-                  <p className="text-xs text-white/80 leading-relaxed max-w-[280px]">
-                    Participe da rede de investimentos Colgate e obtenha rendimentos de até 12% ao dia com segurança absoluta e saques imediatos.
-                  </p>
-                  <div className="pt-2 flex gap-2">
-                    <button 
-                      onClick={() => setActiveTab('products')} 
-                      className="bg-white text-colgate-red hover:bg-slate-50 transition-colors text-xs font-bold px-4 py-2 rounded-xl shadow-md"
-                    >
-                      Ver Planos
-                    </button>
-                    <button 
-                      onClick={() => setActiveTab('support')} 
-                      className="bg-colgate-blue text-white hover:bg-blue-800 transition-colors text-xs font-bold px-4 py-2 rounded-xl shadow-md border border-white/10 flex items-center gap-1"
-                    >
-                      Falar com IA
-                    </button>
-                  </div>
-                </div>
-              </div>
 
               {/* QUICK ACTION BUTTON GRID */}
               <div id="quick-actions" className="grid grid-cols-4 gap-3 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
