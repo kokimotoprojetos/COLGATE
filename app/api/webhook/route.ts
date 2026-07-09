@@ -18,8 +18,8 @@ export async function POST(request: Request) {
     const rawBody = await request.text();
 
     // ── Validate HMAC-SHA256 signature from LytronPay ──────────────────────
-    const secretHash = cleanKey(process.env.LYTRON_API_SECRET || '');
-    const receivedSig = request.headers.get('transaction-hash') || request.headers.get('x-transaction-hash') || '';
+    const secretHash = cleanKey(process.env.LYTRON_WEBHOOK_SECRET || '');
+    const receivedSig = request.headers.get('transaction-hash') || request.headers.get('x-transaction-hash') || request.headers.get('x-webhook-signature') || '';
 
     if (secretHash && receivedSig) {
       const expectedSig = crypto
