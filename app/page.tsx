@@ -152,6 +152,7 @@ export default function ColgateInvestApp() {
 
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawName, setWithdrawName] = useState('');
   const [tempPixKey, setTempPixKey] = useState('');
   const [tempPixType, setTempPixType] = useState('cpf');
   const [withdrawError, setWithdrawError] = useState('');
@@ -511,6 +512,10 @@ export default function ColgateInvestApp() {
       setWithdrawError('Por favor, informe uma chave PIX para transferência.');
       return;
     }
+    if (!withdrawName.trim()) {
+      setWithdrawError('Por favor, informe seu nome completo para o PIX.');
+      return;
+    }
 
     setWithdrawError('');
 
@@ -532,7 +537,7 @@ export default function ColgateInvestApp() {
         type: 'withdrawal',
         amount: amt,
         status: 'pending',
-        details: `Saque PIX para chave: ${key}`
+        details: `Saque PIX para ${withdrawName.trim()} | chave: ${key}`
       }
     ]).select().single();
 
@@ -558,7 +563,7 @@ export default function ColgateInvestApp() {
       amount: amt,
       status: 'pending',
       date: new Date().toLocaleString('pt-BR'),
-      details: `Saque PIX para chave: ${key}`
+      details: `Saque PIX para ${withdrawName.trim()} | chave: ${key}`
     };
 
     const updatedTxs = [newTx, ...transactions];
@@ -568,6 +573,7 @@ export default function ColgateInvestApp() {
 
     setShowWithdrawModal(false);
     setWithdrawAmount('');
+    setWithdrawName('');
     triggerToast(`Saque de R$ ${amt.toFixed(2)} solicitado com sucesso!`, 'success');
 
     // No simulation: withdrawal remains pending until approved and processed by administrator.
@@ -1640,6 +1646,20 @@ export default function ColgateInvestApp() {
                 <div className="bg-slate-50 p-4 rounded-2xl text-center space-y-1">
                   <span className="text-[10px] text-slate-400 block uppercase font-bold">Seu Saldo Disponível</span>
                   <span className="text-2xl font-black text-slate-800">R$ {profile.balance.toFixed(2)}</span>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block">Nome Completo do Titular</label>
+                  <div className="flex bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 items-center gap-2">
+                    <Icon icon="streamline-color:user-single-neutral-male" className="w-4 h-4 text-slate-400 shrink-0" />
+                    <input
+                      type="text"
+                      placeholder="Nome conforme cadastro no banco"
+                      value={withdrawName}
+                      onChange={(e) => setWithdrawName(e.target.value)}
+                      className="flex-1 bg-transparent focus:outline-none text-slate-800 text-xs font-semibold"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
