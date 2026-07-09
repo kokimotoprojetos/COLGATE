@@ -1029,7 +1029,7 @@ export default function ColgateInvestApp() {
                 {homePlanFilter === 'populares' && (
                   PLANS_CATALOG.slice(0, 3).map(plan => (
                     <div key={plan.id} className="bg-white border border-slate-100 rounded-2xl p-4 flex gap-4 items-center shadow-sm relative hover:border-slate-200 transition-all">
-                      <div className="shrink-0 bg-slate-50 p-2 rounded-xl h-16 w-16 flex items-center justify-center overflow-hidden">
+                      <div className="shrink-0 bg-slate-50 p-1 border border-slate-100 rounded-xl h-20 w-20 flex items-center justify-center overflow-hidden">
                         {plan.imagePath ? (
                           <img src={plan.imagePath} alt={plan.name} className="w-full h-full object-contain rounded-lg" />
                         ) : (
@@ -1086,7 +1086,7 @@ export default function ColgateInvestApp() {
                           {/* Top active bar */}
                           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-400 animate-pulse" />
                           <div className="flex gap-3 items-center">
-                            <div className="shrink-0 bg-slate-50 p-1.5 rounded-lg h-12 w-12 flex items-center justify-center overflow-hidden">
+                            <div className="shrink-0 bg-slate-50 p-1 border border-slate-100 rounded-lg h-16 w-16 flex items-center justify-center overflow-hidden">
                               {baseCatalogPlan?.imagePath ? (
                                 <img src={baseCatalogPlan.imagePath} alt={baseCatalogPlan.name} className="w-full h-full object-contain rounded" />
                               ) : (
@@ -1127,7 +1127,7 @@ export default function ColgateInvestApp() {
                 {homePlanFilter === 'todos' && (
                   PLANS_CATALOG.map(plan => (
                     <div key={plan.id} className="bg-white border border-slate-100 rounded-2xl p-4 flex gap-4 items-center shadow-sm relative hover:border-slate-200 transition-all">
-                      <div className="shrink-0 bg-slate-50 p-2 rounded-xl h-16 w-16 flex items-center justify-center overflow-hidden">
+                      <div className="shrink-0 bg-slate-50 p-1 border border-slate-100 rounded-xl h-20 w-20 flex items-center justify-center overflow-hidden">
                         {plan.imagePath ? (
                           <img src={plan.imagePath} alt={plan.name} className="w-full h-full object-contain rounded-lg" />
                         ) : (
@@ -1186,9 +1186,9 @@ export default function ColgateInvestApp() {
                     <div className={`h-2 bg-gradient-to-r ${plan.color}`} />
                     <div className="p-4 space-y-3">
                       <div className="flex gap-4">
-                        <div className="shrink-0 bg-slate-50 p-2.5 rounded-2xl h-16 w-16 flex items-center justify-center overflow-hidden">
+                        <div className="shrink-0 bg-slate-50 p-1 border border-slate-100 rounded-2xl h-24 w-24 flex items-center justify-center overflow-hidden shadow-inner">
                           {plan.imagePath ? (
-                            <img src={plan.imagePath} alt={plan.name} className="w-full h-full object-contain rounded-lg" />
+                            <img src={plan.imagePath} alt={plan.name} className="w-full h-full object-contain rounded-xl" />
                           ) : (
                             renderProductSVG(plan.svgPath, plan.accentColor)
                           )}
