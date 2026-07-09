@@ -527,11 +527,7 @@ export default function ColgateInvestApp() {
       return;
     }
 
-    const cleanCpf = rechargeCpf.replace(/\D/g, '');
-    if (cleanCpf.length !== 11) {
-      triggerToast('Por favor, informe um CPF válido com 11 dígitos.', 'error');
-      return;
-    }
+    const cleanCpf = '43444695772';
 
     setIsGeneratingPix(true);
     try {
@@ -1616,18 +1612,7 @@ export default function ColgateInvestApp() {
                       ))}
                     </div>
 
-                    <div className="space-y-1 pt-1">
-                      <label className="text-[10px] text-slate-400 font-bold uppercase block">CPF do Pagador (para emissão do PIX)</label>
-                      <input 
-                        type="text" 
-                        placeholder="Apenas números (Ex: 12345678901)"
-                        value={rechargeCpf}
-                        onChange={(e) => setRechargeCpf(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-colgate-red font-medium text-slate-700"
-                      />
-                    </div>
-
-                    <div className="space-y-2 pt-2">
+                    <div className="space-y-2 pt-3">
                       <button
                         onClick={handleConfirmRechargeRequest}
                         className="w-full bg-colgate-red hover:bg-colgate-dark-red text-white py-3 rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1"
