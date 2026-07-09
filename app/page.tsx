@@ -1619,9 +1619,13 @@ export default function ColgateInvestApp() {
 
                     {/* Real LytronPay QR Code representation */}
                     <div className="bg-slate-50 p-4 rounded-2xl inline-block border border-slate-200 relative">
-                      {rechargeQrCodeBase64 ? (
+                      {rechargePixCode || rechargeQrCodeBase64 ? (
                         <img 
-                          src={rechargeQrCodeBase64.startsWith('http') || rechargeQrCodeBase64.startsWith('data:image/') ? rechargeQrCodeBase64 : `data:image/png;base64,${rechargeQrCodeBase64}`} 
+                          src={
+                            rechargeQrCodeBase64 && (rechargeQrCodeBase64.startsWith('http') || rechargeQrCodeBase64.startsWith('data:image/'))
+                              ? rechargeQrCodeBase64 
+                              : `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(rechargePixCode || rechargeQrCodeBase64)}`
+                          } 
                           className="w-36 h-36 mx-auto rounded-xl shadow-sm bg-white p-1" 
                           alt="PIX QR Code" 
                         />
