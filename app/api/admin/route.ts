@@ -276,7 +276,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Ação administrativa inválida' }, { status: 400 });
 
   } catch (error: any) {
-    console.error('Admin API error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    console.error('Admin API error:', error?.message || error, error?.stack || '');
+    const supaMsg = error?.message || '';
+    if (supaMsg.includes('API key') || supaMsg.includes('api_key') || supaMsg.includes('Invalid') || supaMsg.includes('JWT') || supaMsg.includes('auth')) {
+      return NextResponse.json({
+        error: 'Erro de autenticação com o Supabase. A variável SUPABASE_SERVICE_ROLE_KEY configurada no Vercel pode estar incorreta ou expirada. Verifique se ela é exatamente igual à Service Role Key do seu projeto Supabase (Settings → API → Service Role Key).'
+      }, { status: 500 });
+    }
+    return NextResponse.json({ error: supaMsg || 'Internal Server Error' }, { status: 500 });
   }
 }
