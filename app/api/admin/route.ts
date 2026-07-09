@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
     if (supabaseServiceKey === 'placeholder-service-key' || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return NextResponse.json({ 
-        error: 'Erro de Configuração: A variável de ambiente "SUPABASE_SERVICE_ROLE_KEY" não foi cadastrada no painel do Vercel. Por favor, adicione-a nas configurações do seu projeto no Vercel e faça um novo deploy.' 
+        error: 'Erro de Configuração: A variável de ambiente "SUPABASE_SERVICE_ROLE_KEY" não foi cadastrada no painel do Vercel.' 
       }, { status: 500 });
     }
 
@@ -50,37 +50,44 @@ export async function POST(request: Request) {
 
       if (errProf) throw errProf;
 
-      // 2. Fetch all transactions
-      const { data: transactions, error: errTx } = await supabaseAdmin
+      // Build a lookup map: user_id -> profile
+      const profileMap: Record<string, any> = {};
+      (profiles || []).forEach((p: any) => { profileMap[p.id] = p; });
+
+      // 2. Fetch all transactions WITHOUT join (no FK relationship in schema cache)
+      const { data: rawTransactions, error: errTx } = await supabaseAdmin
         .from('transactions')
-        .select('*, profiles(username, pix_key, pix_type)')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (errTx) throw errTx;
 
-      // 3. Calculate statistics
-      // Total Deposits = sum of 'deposit' transactions that are 'completed'
+      // 3. Merge profile info manually into each transaction
+      const transactions = (rawTransactions || []).map((tx: any) => ({
+        ...tx,
+        profiles: profileMap[tx.user_id] || null
+      }));
+
+      // 4. Calculate statistics
       const totalDeposited = transactions
-        .filter(t => t.type === 'deposit' && t.status === 'completed')
-        .reduce((sum, t) => sum + Number(t.amount), 0);
+        .filter((t: any) => t.type === 'deposit' && t.status === 'completed')
+        .reduce((sum: number, t: any) => sum + Number(t.amount), 0);
 
-      // Total Paid = sum of 'withdrawal' transactions that are 'completed'
       const totalPaid = transactions
-        .filter(t => t.type === 'withdrawal' && t.status === 'completed')
-        .reduce((sum, t) => sum + Number(t.amount), 0);
+        .filter((t: any) => t.type === 'withdrawal' && t.status === 'completed')
+        .reduce((sum: number, t: any) => sum + Number(t.amount), 0);
 
-      // Pending Withdrawals
-      const pendingWithdrawals = transactions.filter(t => t.type === 'withdrawal' && t.status === 'pending');
+      const pendingWithdrawals = transactions.filter((t: any) => t.type === 'withdrawal' && t.status === 'pending');
 
       return NextResponse.json({
         success: true,
         stats: {
-          totalUsers: profiles.length,
+          totalUsers: (profiles || []).length,
           totalDeposited,
           totalPaid,
           pendingCount: pendingWithdrawals.length
         },
-        profiles,
+        profiles: profiles || [],
         transactions,
         pendingWithdrawals
       });
@@ -93,7 +100,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Valor inválido para depósito' }, { status: 400 });
       }
 
-      // Fetch user profile current balance
       const { data: userProfile, error: getErr } = await supabaseAdmin
         .from('profiles')
         .select('*')
@@ -107,27 +113,20 @@ export async function POST(request: Request) {
       const updatedBalance = Number(userProfile.balance) + numAmount;
       const updatedTotalRecharge = Number(userProfile.total_recharge) + numAmount;
 
-      // Update DB Profile
       const { error: updErr } = await supabaseAdmin
         .from('profiles')
-        .update({
-          balance: updatedBalance,
-          total_recharge: updatedTotalRecharge
-        })
+        .update({ balance: updatedBalance, total_recharge: updatedTotalRecharge })
         .eq('id', userId);
 
       if (updErr) throw updErr;
 
-      // Record deposit transaction
-      const { error: insErr } = await supabaseAdmin.from('transactions').insert([
-        {
-          user_id: userId,
-          type: 'deposit',
-          amount: numAmount,
-          status: 'completed',
-          details: 'Crédito direto via Painel Administrativo'
-        }
-      ]);
+      const { error: insErr } = await supabaseAdmin.from('transactions').insert([{
+        user_id: userId,
+        type: 'deposit',
+        amount: numAmount,
+        status: 'completed',
+        details: 'Crédito direto via Painel Administrativo'
+      }]);
 
       if (insErr) throw insErr;
 
@@ -137,10 +136,10 @@ export async function POST(request: Request) {
     if (action === 'approve-withdrawal') {
       const { transactionId } = params;
 
-      // Retrieve transaction and user profile details
+      // Fetch transaction (no join)
       const { data: tx, error: fetchErr } = await supabaseAdmin
         .from('transactions')
-        .select('*, profiles(*)')
+        .select('*')
         .eq('id', transactionId)
         .single();
 
@@ -152,28 +151,35 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Esta solicitação de saque já foi processada' }, { status: 400 });
       }
 
-      const pixKey = tx.profiles.pix_key;
-      const pixType = tx.profiles.pix_type || 'key';
+      // Fetch the associated profile separately
+      const { data: userProfile, error: profErr } = await supabaseAdmin
+        .from('profiles')
+        .select('*')
+        .eq('id', tx.user_id)
+        .single();
+
+      if (profErr || !userProfile) {
+        return NextResponse.json({ error: 'Perfil do usuário não encontrado' }, { status: 404 });
+      }
+
+      const pixKey = userProfile.pix_key;
+      const pixType = userProfile.pix_type || 'cpf';
 
       if (!pixKey) {
         return NextResponse.json({ error: 'Usuário não possui uma chave PIX cadastrada' }, { status: 400 });
       }
 
-      const apiKey = process.env.LYTRON_API_KEY;
-      const apiSecret = process.env.LYTRON_API_SECRET;
+      const apiKey = cleanKey(process.env.LYTRON_API_KEY || '');
+      const apiSecret = cleanKey(process.env.LYTRON_API_SECRET || '');
 
       if (!apiKey || !apiSecret) {
         return NextResponse.json({ error: 'Chaves da API da LytronPay não configuradas no backend' }, { status: 500 });
       }
 
-      // 1. Trigger the live Payout transfer call via LytronPay
       const payoutPayload = {
         amount: parseFloat(tx.amount),
-        pix: {
-          type: pixType,
-          key: pixKey
-        },
-        description: `Saque Colgate - ${tx.profiles.username}`,
+        pix: { type: pixType, key: pixKey },
+        description: `Saque Colgate - ${userProfile.username}`,
         idempotency_key: `payout-${transactionId}`
       };
 
@@ -196,11 +202,10 @@ export async function POST(request: Request) {
         const resData = await response.json();
 
         if (!response.ok) {
-          console.error('LytronPay payout API error details:', resData);
+          console.error('LytronPay payout API error:', resData);
           return NextResponse.json({ error: resData.message || 'Erro ao processar saque na API da LytronPay' }, { status: response.status });
         }
 
-        // 2. Mark the transaction as completed on payout API success
         const { error: updTxErr } = await supabaseAdmin
           .from('transactions')
           .update({ status: 'completed' })
@@ -210,7 +215,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ 
           success: true, 
-          message: 'Saque aprovado e pago com sucesso via API da LytronPay.', 
+          message: 'Saque aprovado e pago com sucesso via API da LytronPay.',
           payoutId: resData.payoutId 
         });
 
@@ -247,22 +252,16 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Perfil do usuário não encontrado' }, { status: 404 });
       }
 
-      // Revert funds back to user balance on rejection
       const revertedBalance = Number(userProfile.balance) + Number(tx.amount);
       const revertedWithdrawalSum = Math.max(0, Number(userProfile.total_withdrawal) - Number(tx.amount));
 
-      // Update DB user profile
       const { error: updProfErr } = await supabaseAdmin
         .from('profiles')
-        .update({
-          balance: revertedBalance,
-          total_withdrawal: revertedWithdrawalSum
-        })
+        .update({ balance: revertedBalance, total_withdrawal: revertedWithdrawalSum })
         .eq('id', tx.user_id);
 
       if (updProfErr) throw updProfErr;
 
-      // Mark transaction status as rejected
       const { error: updTxErr } = await supabaseAdmin
         .from('transactions')
         .update({ status: 'rejected' })
@@ -276,13 +275,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Ação administrativa inválida' }, { status: 400 });
 
   } catch (error: any) {
-    console.error('Admin API error:', error?.message || error, error?.stack || '');
-    const supaMsg = error?.message || '';
-    if (supaMsg.includes('API key') || supaMsg.includes('api_key') || supaMsg.includes('Invalid') || supaMsg.includes('JWT') || supaMsg.includes('auth')) {
-      return NextResponse.json({
-        error: 'Erro de autenticação com o Supabase. A variável SUPABASE_SERVICE_ROLE_KEY configurada no Vercel pode estar incorreta ou expirada. Verifique se ela é exatamente igual à Service Role Key do seu projeto Supabase (Settings → API → Service Role Key).'
-      }, { status: 500 });
-    }
-    return NextResponse.json({ error: supaMsg || 'Internal Server Error' }, { status: 500 });
+    console.error('Admin API error:', error?.message || error);
+    return NextResponse.json({ error: error?.message || 'Internal Server Error' }, { status: 500 });
   }
 }
