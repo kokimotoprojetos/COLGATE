@@ -2,7 +2,7 @@
 
 Plataforma de fidelização e simulação de investimentos da Colgate, construída com **Next.js 15** e **Gemini AI**.
 
-## 🚀 Deploy no Vercel
+## Deploy no Vercel
 
 ### 1. Faça o deploy com um clique
 
@@ -15,7 +15,7 @@ No painel do Vercel, acesse:
 
 | Variável | Descrição | Obrigatório |
 |---|---|---|
-| `GEMINI_API_KEY` | Chave da API Gemini (Google AI Studio) | ✅ Sim |
+| `GEMINI_API_KEY` | Chave da API Gemini (Google AI Studio) | Sim |
 
 > Obtenha sua chave em: https://aistudio.google.com/apikey
 
@@ -31,7 +31,7 @@ vercel --prod
 
 ---
 
-## 💻 Rodar Localmente
+## Rodar Localmente
 
 **Pré-requisitos:** Node.js 18+
 
@@ -55,7 +55,7 @@ vercel --prod
 
 ---
 
-## 🛠️ Tecnologias
+## Tecnologias
 
 - [Next.js 15](https://nextjs.org/) — Framework React com App Router
 - [Gemini AI](https://ai.google.dev/) — IA Generativa (Dra. Sorriso)

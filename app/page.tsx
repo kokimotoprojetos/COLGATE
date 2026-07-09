@@ -185,7 +185,7 @@ export default function ColgateInvestApp() {
     {
       id: 'msg-start',
       role: 'assistant',
-      content: 'Olá! Sou a Dra. Sorriso, sua consultora de bem-estar bucal e financeiro na Colgate Investimentos. 🪥✨ Como posso clarear suas dúvidas hoje? Posso te explicar sobre nossos planos de rendimento, como fazer saques via PIX ou dar dicas de escovação!'
+      content: 'Olá! Sou a Dra. Sorriso, sua consultora de bem-estar bucal e financeiro na Colgate Investimentos. Como posso clarear suas dúvidas hoje? Posso te explicar sobre nossos planos de rendimento, como fazer saques via PIX ou dar dicas de escovação!'
     }
   ]);
   const [userInput, setUserInput] = useState('');
@@ -744,9 +744,9 @@ export default function ColgateInvestApp() {
                 </div>
                 <div className="flex-1 overflow-hidden h-5 relative">
                   <div className="absolute whitespace-nowrap animate-[marquee_18s_linear_infinite] text-xs font-semibold text-amber-800 flex gap-6">
-                    <span>🔥 Bônus Grátis de R$ 10,00 adicionado para novos cadastros!</span>
-                    <span>🦷 Colgate Total 12 Active rendendo 5.0% ao dia já disponível!</span>
-                    <span>💰 Indique amigos na aba Equipe e ganhe comissão direta de 10% instantaneamente!</span>
+                    <span>Bônus Grátis de R$ 10,00 adicionado para novos cadastros!</span>
+                    <span>Colgate Total 12 Active rendendo 5.0% ao dia já disponível!</span>
+                    <span>Indique amigos na aba Equipe e ganhe comissão direta de 10% instantaneamente!</span>
                   </div>
                 </div>
               </div>
@@ -1015,8 +1015,8 @@ export default function ColgateInvestApp() {
             >
               {/* Support Doctor Header Banner */}
               <div className="bg-gradient-to-r from-colgate-red to-red-700 p-4 text-white flex items-center gap-3 shadow-inner">
-                <div className="w-12 h-12 rounded-full border-2 border-white/20 overflow-hidden relative bg-white/20 flex items-center justify-center font-bold text-white text-lg shadow-md shrink-0">
-                  👩‍⚕️
+                <div className="w-12 h-12 rounded-full border-2 border-white/20 overflow-hidden relative bg-white/20 flex items-center justify-center font-bold text-white shadow-md shrink-0">
+                  <User className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
@@ -1061,19 +1061,19 @@ export default function ColgateInvestApp() {
                   onClick={() => handlePredefinedQuestion("Como funcionam os rendimentos diários?")}
                   className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1.5 rounded-full shrink-0 shadow-sm"
                 >
-                  🤔 Como funciona?
+                  Como funciona?
                 </button>
                 <button 
                   onClick={() => handlePredefinedQuestion("Qual é o valor mínimo para sacar?")}
                   className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1.5 rounded-full shrink-0 shadow-sm"
                 >
-                  💸 Saque mínimo?
+                  Saque mínimo?
                 </button>
                 <button 
                   onClick={() => handlePredefinedQuestion("Como recarregar com PIX?")}
                   className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1.5 rounded-full shrink-0 shadow-sm"
                 >
-                  ⚡ Como Recarregar?
+                  Como Recarregar?
                 </button>
                 <button 
                   onClick={() => handlePredefinedQuestion("Me dê dicas de escovação saudável!")}
@@ -1176,15 +1176,15 @@ export default function ColgateInvestApp() {
                 </h3>
                 <ul className="text-xs space-y-2 text-slate-600">
                   <li className="flex justify-between">
-                    <span>🥇 Nível 1 (Indicação Direta):</span>
+                    <span>Nível 1 (Indicação Direta):</span>
                     <span className="font-bold text-colgate-red">10% de Bônus</span>
                   </li>
                   <li className="flex justify-between border-t border-slate-100 pt-2">
-                    <span>🥈 Nível 2 (Indicação do seu Indicado):</span>
+                    <span>Nível 2 (Indicação do seu Indicado):</span>
                     <span className="font-bold text-slate-700">3% de Bônus</span>
                   </li>
                   <li className="flex justify-between border-t border-slate-100 pt-2">
-                    <span>🥉 Nível 3:</span>
+                    <span>Nível 3:</span>
                     <span className="font-bold text-slate-500">1% de Bônus</span>
                   </li>
                 </ul>
