@@ -306,6 +306,7 @@ export default function ColgateInvestApp() {
 
   const [nextYieldCountdowns, setNextYieldCountdowns] = useState<Record<string, number>>({});
   const activePlansRef = useRef(activePlans);
+  const pollIntervalRef = useRef<any>(null);
   activePlansRef.current = activePlans;
 
   useEffect(() => {
@@ -420,29 +421,68 @@ export default function ColgateInvestApp() {
     if (rechargeStep !== 'qr' || !currentTxId) return;
 
     let isSubscribed = true;
+    let attempts = 0;
+    const MAX_ATTEMPTS = 30; // 30 attempts * 2s = 60 seconds
+
     const pollInterval = setInterval(async () => {
+      attempts++;
       try {
         const res = await fetch(`/api/pix-status?txid=${currentTxId}`);
         const data = await res.json();
-        
-const rawStatus = data.status || (data.charge && data.charge.status) || '';
-const chargeStatus = typeof rawStatus === 'string' ? rawStatus.toLowerCase() : '';
-if (chargeStatus === 'paid' || chargeStatus === 'completed') {
+
+        const rawStatus = data.status || (data.charge && data.charge.status) || '';
+        const chargeStatus = typeof rawStatus === 'string' ? rawStatus.toLowerCase() : '';
+        if (['paid', 'completed', 'approved'].includes(chargeStatus)) {
           clearInterval(pollInterval);
           if (isSubscribed) {
             handleRechargeSuccess(parseFloat(rechargeAmount));
+          }
+          return;
+        }
+
+        if (attempts >= MAX_ATTEMPTS) {
+          clearInterval(pollInterval);
+          if (isSubscribed) {
+            triggerToast('Tempo limite de validação de pagamento excedido. Por favor, tente novamente.', 'error');
+            // Reset modal state to allow new attempt
+            setShowRechargeModal(false);
+            setRechargeStep('input');
+            setCurrentTxId(null);
           }
         }
       } catch (err) {
         console.error('Error polling payment status:', err);
       }
-    }, 4000);
+    }, 2000);
+    // Keep reference for manual verification
+    pollIntervalRef.current = pollInterval;
 
     return () => {
       isSubscribed = false;
       clearInterval(pollInterval);
     };
   }, [rechargeStep, currentTxId, rechargeAmount]);
+
+  // Manual verification button handler
+  const handleManualPaymentCheck = async () => {
+    if (!currentTxId) return;
+    try {
+      const res = await fetch(`/api/pix-status?txid=${currentTxId}`);
+      const data = await res.json();
+
+      const rawStatus = data.status || (data.charge && data.charge.status) || '';
+      const chargeStatus = typeof rawStatus === 'string' ? rawStatus.toLowerCase() : '';
+      if (['paid', 'completed', 'approved'].includes(chargeStatus)) {
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+        handleRechargeSuccess(parseFloat(rechargeAmount));
+      } else {
+        triggerToast('Pagamento ainda não confirmado. Tente novamente.', 'info');
+      }
+    } catch (err) {
+      console.error('Error checking payment status:', err);
+      triggerToast('Erro ao validar pagamento.', 'error');
+    }
+  };
 
   // Simulating Deposit (Recharge) flow
   const handleConfirmRechargeRequest = async () => {
@@ -1612,6 +1652,12 @@ if (chargeStatus === 'paid' || chargeStatus === 'completed') {
                         <Icon icon="streamline-color:cloud-refresh" className="w-4 h-4 animate-spin text-emerald-500" />
                         <span>Aguardando recebimento do PIX automático...</span>
                       </div>
+                      <button
+                        onClick={handleManualPaymentCheck}
+                        className="w-full bg-colgate-blue hover:bg-colgate-dark-blue text-white py-3 rounded-xl font-bold text-xs mt-2"
+                      >
+                        Já realizei o pagamento
+                      </button>
                       <button
                         onClick={() => {
                           setShowRechargeModal(false);
