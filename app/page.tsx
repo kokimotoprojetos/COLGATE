@@ -1182,44 +1182,51 @@ export default function ColgateInvestApp() {
 
               <div className="space-y-4">
                 {PLANS_CATALOG.map(plan => (
-                  <div key={plan.id} className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                    <div className={`h-2 bg-gradient-to-r ${plan.color}`} />
-                    <div className="p-4 space-y-3">
-                      <div className="flex gap-4">
-                        <div className="shrink-0 bg-slate-50 p-1 border border-slate-100 rounded-2xl h-24 w-24 flex items-center justify-center overflow-hidden shadow-inner">
-                          {plan.imagePath ? (
-                            <img src={plan.imagePath} alt={plan.name} className="w-full h-full object-contain rounded-xl" />
-                          ) : (
-                            renderProductSVG(plan.svgPath, plan.accentColor)
-                          )}
+                  <div key={plan.id} className="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-300">
+                    {/* Large Product Hero Image Container */}
+                    <div className="bg-slate-50/70 p-6 flex items-center justify-center h-48 border-b border-slate-55 relative group">
+                      <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${plan.color}`} />
+                      {plan.imagePath ? (
+                        <img 
+                          src={plan.imagePath} 
+                          alt={plan.name} 
+                          className="h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
+                        />
+                      ) : (
+                        <div className="w-20 h-20 flex items-center justify-center">
+                          {renderProductSVG(plan.svgPath, plan.accentColor)}
                         </div>
-                        <div className="flex-1 flex items-center">
-                          <h3 className="text-sm font-bold text-slate-800">{plan.name}</h3>
+                      )}
+                    </div>
+
+                    <div className="p-5 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-base font-extrabold text-slate-800 tracking-tight">{plan.name}</h3>
+                        <span className="text-[9px] font-bold text-colgate-red bg-red-50 px-2.5 py-1 rounded-full uppercase">Fórmula Ativa</span>
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-2 bg-slate-50 p-3 rounded-xl text-[10px] text-center font-semibold">
+                        <div>
+                          <p className="text-slate-400 uppercase text-[7px]">Preço</p>
+                          <p className="text-slate-800">R$ {plan.price.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 uppercase text-[7px]">Rendimento</p>
+                          <p className="text-emerald-600">R$ {plan.dailyIncome.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 uppercase text-[7px]">Estimado</p>
+                          <p className="text-colgate-blue">R$ {(plan.dailyIncome * plan.cycleDays).toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 uppercase text-[7px]">Ciclo</p>
+                          <p className="text-slate-700">{plan.cycleDays} Dias</p>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-4 gap-2 bg-slate-50 p-3 rounded-xl text-[10px] text-center">
-                        <div>
-                          <p className="text-slate-400 uppercase text-[8px]">Preço do Ativo</p>
-                          <p className="font-bold text-slate-800">R$ {plan.price.toFixed(2)}</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-400 uppercase text-[8px]">Rendimento Diário</p>
-                          <p className="font-bold text-emerald-600">R$ {plan.dailyIncome.toFixed(2)}</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-400 uppercase text-[8px]">Retorno Estimado</p>
-                          <p className="font-bold text-colgate-blue">R$ {(plan.dailyIncome * plan.cycleDays).toFixed(2)}</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-400 uppercase text-[8px]">Ciclo Total</p>
-                          <p className="font-bold text-slate-700">{plan.cycleDays} Dias</p>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center pt-2">
+                      <div className="flex justify-between items-center pt-1">
                         <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                          <Icon icon="streamline-color:shield-check" className="w-3.5 h-3.5 text-colgate-red" /> Seguro Garantido Colgate
+                          <Icon icon="streamline-color:shield-check" className="w-3.5 h-3.5 text-colgate-red" /> Seguro Colgate
                         </span>
                         <button 
                           onClick={() => setShowBuyModal(plan)}
