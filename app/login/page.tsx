@@ -72,44 +72,64 @@ export default function AuthPage() {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              username: username
+            }
+          }
         });
 
         if (signUpError) throw signUpError;
 
         const user = signUpData.user;
         if (user) {
-          // Generate a unique client ID
-          const idCode = 'COLG-' + Math.floor(1000 + Math.random() * 9000);
-          
-          // Create user profile in profiles table
-          const { error: profileError } = await supabase.from('profiles').insert([
-            {
-              id: user.id,
-              username: username,
-              balance: 10.00, // R$ 10.00 register bonus
-              total_recharge: 0.00,
-              total_withdrawal: 0.00,
-              total_income: 0.00,
-              pix_key: '',
-              pix_type: 'cpf',
-              id_code: idCode
-            }
-          ]);
+          // Check if profile was already created by database trigger
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', user.id)
+            .maybeSingle();
 
-          if (profileError) {
-            console.error('Error creating profile:', profileError);
-            setErrorMsg('Erro ao criar perfil. Por favor, tente novamente.');
-            setIsLoading(false);
-            return;
+          if (!existingProfile) {
+            const idCode = 'COLG-' + Math.floor(1000 + Math.random() * 9000);
+            
+            // Try to create user profile in profiles table (client fallback)
+            const { error: profileError } = await supabase.from('profiles').insert([
+              {
+                id: user.id,
+                username: username,
+                balance: 10.00, // R$ 10.00 register bonus
+                total_recharge: 0.00,
+                total_withdrawal: 0.00,
+                total_income: 0.00,
+                pix_key: '',
+                pix_type: 'cpf',
+                id_code: idCode
+              }
+            ]);
+
+            if (profileError) {
+              console.error('Error creating profile client-side:', profileError);
+              setErrorMsg('Erro ao cadastrar perfil. Se você ativou "Confirm Email" no Supabase, verifique sua caixa de entrada.');
+              setIsLoading(false);
+              return;
+            }
           }
 
           setSuccessMsg('Cadastro realizado com sucesso! Redirecionando...');
           
           // Automatically log in
-          await supabase.auth.signInWithPassword({
+          const { error: signInError } = await supabase.auth.signInWithPassword({
             email,
             password
           });
+
+          if (signInError) {
+            // User registered, but email confirmation might be required to authenticate
+            setErrorMsg('Conta criada! Verifique seu e-mail para confirmar seu cadastro antes de entrar.');
+            setIsLoading(false);
+            return;
+          }
           
           setTimeout(() => {
             router.push('/');

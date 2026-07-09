@@ -79,3 +79,27 @@ CREATE POLICY "Permitir leitura das próprias transações"
 CREATE POLICY "Permitir inserção de transações para si mesmo"
     ON public.transactions FOR INSERT
     WITH CHECK (auth.uid() = user_id);
+
+-- 4. Função e Trigger para Criar Perfil Automaticamente no Banco de Dados (Bypassa RLS durante o signup)
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, username, balance, total_recharge, total_withdrawal, total_income, pix_key, pix_type, id_code)
+  VALUES (
+    new.id,
+    COALESCE(new.raw_user_meta_data->>'username', 'Investidor Colgate'),
+    10.00,
+    0.00,
+    0.00,
+    0.00,
+    '',
+    'cpf',
+    'COLG-' || floor(1000 + random() * 9000)::text
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
