@@ -23,22 +23,75 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(request: Request) {
+
   try {
     const body = await request.json();
-    const { action, username, password, params } = body;
+    const { action, params } = body;
 
-    // Verify Admin Credentials
-    const envAdminUser = process.env.ADMIN_USERNAME || 'admin';
-    const envAdminPass = process.env.ADMIN_PASSWORD || 'colgate2026admin';
+    // ==== Segurança ==== //
+    // 1. CORS - permite somente nosso domínio
+    const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL || '*';
+    const origin = request.headers.get('origin') || '';
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': allowedOrigin,
+      'Access-Control-Allow-Methods': 'POST,OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+    };
 
-    if (username !== envAdminUser || password !== envAdminPass) {
-      return NextResponse.json({ error: 'Credenciais administrativas inválidas' }, { status: 401 });
+    // 2. Rate limiting simples (5 req/min por IP)
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    // Global map stored on module level (persist across invocations in Vercel Edge)
+    if (global.rateLimiter === undefined) {
+      global.rateLimiter = new Map();
+    }
+    const limiter = global.rateLimiter;
+    const now = Date.now();
+    const windowMs = 60 * 1000; // 1 min
+    const max = 5;
+    let entry = limiter.get(ip);
+    if (!entry) {
+      entry = { count: 1, start: now };
+      limiter.set(ip, entry);
+    } else {
+      if (now - entry.start > windowMs) {
+        entry.count = 1;
+        entry.start = now;
+      } else {
+        entry.count++;
+      }
+    }
+    if (entry.count > max) {
+      return new Response(JSON.stringify({ error: 'Too many requests' }), { status: 429, headers: corsHeaders });
+    }
+
+    // Helper para respostas JSON padrão (inclui CORS e Content-Type)
+    const jsonResponse = (payload: any, status: number = 200) => {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...corsHeaders,
+      } as any;
+      return new Response(JSON.stringify(payload), { status, headers });
+    };
+    // 3. Verificação de token ADMIN_TOKEN (preferencial)
+    const adminToken = process.env.ADMIN_TOKEN;
+    const authHeader = request.headers.get('authorization') || '';
+    const token = authHeader.replace('Bearer ', '').trim();
+    if (adminToken) {
+      if (token !== adminToken) {
+        return new Response(JSON.stringify({ error: 'Credenciais administrativas inválidas' }), { status: 401, headers: corsHeaders });
+      }
+    } else {
+      // Fallback: checa username/password como antes (para compatibilidade)
+      const { username, password } = body as any;
+      const envAdminUser = process.env.ADMIN_USERNAME || 'admin';
+      const envAdminPass = process.env.ADMIN_PASSWORD || 'colgate2026admin';
+      if (username !== envAdminUser || password !== envAdminPass) {
+        return new Response(JSON.stringify({ error: 'Credenciais administrativas inválidas' }), { status: 401, headers: corsHeaders });
+      }
     }
 
     if (supabaseServiceKey === 'placeholder-service-key' || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      return NextResponse.json({ 
-        error: 'Erro de Configuração: A variável de ambiente "SUPABASE_SERVICE_ROLE_KEY" não foi cadastrada no painel do Vercel.' 
-      }, { status: 500 });
+      return jsonResponse({ error: 'Erro de Configuração: A variável de ambiente "SUPABASE_SERVICE_ROLE_KEY" não foi cadastrada no painel do Vercel.' }, 500);
     }
 
     if (action === 'get-stats') {
@@ -93,7 +146,7 @@ export async function POST(request: Request) {
 
       const pendingWithdrawals = transactions.filter((t: any) => t.type === 'withdrawal' && t.status === 'pending');
 
-      return NextResponse.json({
+      return jsonResponse({
         success: true,
         stats: {
           totalUsers: (profiles || []).length,
@@ -112,7 +165,7 @@ export async function POST(request: Request) {
       const { userId, amount } = params;
       const numAmount = parseFloat(amount);
       if (isNaN(numAmount) || numAmount <= 0) {
-        return NextResponse.json({ error: 'Valor inválido para depósito' }, { status: 400 });
+        return jsonResponse({ error: 'Valor inválido para depósito' }, 400);
       }
 
       const { data: userProfile, error: getErr } = await supabaseAdmin
@@ -122,7 +175,7 @@ export async function POST(request: Request) {
         .single();
 
       if (getErr || !userProfile) {
-        return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
+        return jsonResponse({ error: 'Usuário não encontrado' }, 404);
       }
 
       const updatedBalance = Number(userProfile.balance) + numAmount;
@@ -145,7 +198,7 @@ export async function POST(request: Request) {
 
       if (insErr) throw insErr;
 
-      return NextResponse.json({ success: true, message: `Saldo de R$ ${numAmount.toFixed(2)} adicionado com sucesso.` });
+      return jsonResponse({ success: true, message: `Saldo de R$ ${numAmount.toFixed(2)} adicionado com sucesso.` });
     }
 
     if (action === 'approve-withdrawal') {
@@ -159,11 +212,11 @@ export async function POST(request: Request) {
         .single();
 
       if (fetchErr || !tx) {
-        return NextResponse.json({ error: 'Solicitação de saque não encontrada' }, { status: 404 });
+        return jsonResponse({ error: 'Solicitação de saque não encontrada' }, 404);
       }
 
       if (tx.status !== 'pending') {
-        return NextResponse.json({ error: 'Esta solicitação de saque já foi processada' }, { status: 400 });
+        return jsonResponse({ error: 'Esta solicitação de saque já foi processada' }, 400);
       }
 
       // Fetch the associated profile separately
@@ -174,21 +227,21 @@ export async function POST(request: Request) {
         .single();
 
       if (profErr || !userProfile) {
-        return NextResponse.json({ error: 'Perfil do usuário não encontrado' }, { status: 404 });
+        return jsonResponse({ error: 'Perfil do usuário não encontrado' }, 404);
       }
 
       const pixKey = userProfile.pix_key;
       const pixType = userProfile.pix_type || 'cpf';
 
       if (!pixKey) {
-        return NextResponse.json({ error: 'Usuário não possui uma chave PIX cadastrada' }, { status: 400 });
+        return jsonResponse({ error: 'Usuário não possui uma chave PIX cadastrada' }, 400);
       }
 
       const apiKey = cleanKey(process.env.LYTRON_API_KEY || '');
       const apiSecret = cleanKey(process.env.LYTRON_API_SECRET || '');
 
       if (!apiKey || !apiSecret) {
-        return NextResponse.json({ error: 'Chaves da API da LytronPay não configuradas no backend' }, { status: 500 });
+        return jsonResponse({ error: 'Chaves da API da LytronPay não configuradas no backend' }, 500);
       }
 
       const grossAmount = parseFloat(tx.amount);
@@ -222,7 +275,7 @@ export async function POST(request: Request) {
 
         if (!response.ok) {
           console.error('LytronPay payout API error:', resData);
-          return NextResponse.json({ error: resData.message || 'Erro ao processar saque na API da LytronPay' }, { status: response.status });
+          return jsonResponse({ error: resData.message || 'Erro ao processar saque na API da LytronPay' }, response.status);
         }
 
         const { error: updTxErr } = await supabaseAdmin
@@ -232,7 +285,7 @@ export async function POST(request: Request) {
 
         if (updTxErr) throw updTxErr;
 
-        return NextResponse.json({ 
+        return jsonResponse({ 
           success: true, 
           message: `Saque de R$ ${grossAmount.toFixed(2)} aprovado. Taxa de 12% (R$ ${fee.toFixed(2)}) aplicada. Enviado R$ ${netAmount.toFixed(2)} via LytronPay.`,
           payoutId: resData.payoutId,
@@ -243,7 +296,7 @@ export async function POST(request: Request) {
 
       } catch (payError: any) {
         console.error('Payout API network failure:', payError);
-        return NextResponse.json({ error: 'Falha de comunicação com o gateway de pagamentos.' }, { status: 502 });
+        return jsonResponse({ error: 'Falha de comunicação com o gateway de pagamentos.' }, 502);
       }
     }
 
@@ -257,11 +310,11 @@ export async function POST(request: Request) {
         .single();
 
       if (fetchErr || !tx) {
-        return NextResponse.json({ error: 'Solicitação de saque não encontrada' }, { status: 404 });
+        return jsonResponse({ error: 'Solicitação de saque não encontrada' }, 404);
       }
 
       if (tx.status !== 'pending') {
-        return NextResponse.json({ error: 'Esta solicitação de saque já foi processada' }, { status: 400 });
+        return jsonResponse({ error: 'Esta solicitação de saque já foi processada' }, 400);
       }
 
       const { data: userProfile, error: getErr } = await supabaseAdmin
@@ -271,7 +324,7 @@ export async function POST(request: Request) {
         .single();
 
       if (getErr || !userProfile) {
-        return NextResponse.json({ error: 'Perfil do usuário não encontrado' }, { status: 404 });
+        return jsonResponse({ error: 'Perfil do usuário não encontrado' }, 404);
       }
 
       const revertedBalance = Number(userProfile.balance) + Number(tx.amount);
@@ -291,13 +344,13 @@ export async function POST(request: Request) {
 
       if (updTxErr) throw updTxErr;
 
-      return NextResponse.json({ success: true, message: 'Solicitação de saque rejeitada e fundos devolvidos ao saldo do usuário.' });
+      return jsonResponse({ success: true, message: 'Solicitação de saque rejeitada e fundos devolvidos ao saldo do usuário.' });
     }
 
-    return NextResponse.json({ error: 'Ação administrativa inválida' }, { status: 400 });
+    return jsonResponse({ error: 'Ação administrativa inválida' }, 400);
 
   } catch (error: any) {
     console.error('Admin API error:', error?.message || error);
-    return NextResponse.json({ error: error?.message || 'Internal Server Error' }, { status: 500 });
+    return jsonResponse({ error: error?.message || 'Internal Server Error' }, 500);
   }
 }
