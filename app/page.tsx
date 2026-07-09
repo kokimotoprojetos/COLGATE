@@ -642,23 +642,7 @@ export default function ColgateInvestApp() {
     setWithdrawAmount('');
     triggerToast(`Saque de R$ ${amt.toFixed(2)} solicitado com sucesso!`, 'success');
 
-    // Simulate completion in 15 seconds to show dynamic status updating
-    setTimeout(async () => {
-      if (txData?.id) {
-        await supabase.from('transactions').update({ status: 'completed' }).eq('id', txData.id);
-      }
-
-      setTransactions(prevTxs => {
-        const nextTxs = prevTxs.map(t => {
-          if (t.id === (txData?.id || newTx.id)) {
-            return { ...t, status: 'completed' as const };
-          }
-          return t;
-        });
-        return nextTxs;
-      });
-      triggerToast(`Saque de R$ ${amt.toFixed(2)} enviado para sua conta bancária via PIX!`, 'success');
-    }, 15000);
+    // No simulation: withdrawal remains pending until approved and processed by administrator.
   };
 
   // Purchasing investment plans
@@ -1666,18 +1650,20 @@ export default function ColgateInvestApp() {
                       </div>
                     </div>
 
-                    <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <div className="space-y-3 pt-3 border-t border-slate-100">
+                      <div className="flex items-center justify-center gap-2 text-[10px] text-emerald-600 bg-emerald-50 py-2.5 px-3 rounded-xl font-bold animate-pulse">
+                        <Icon icon="streamline-color:cloud-refresh" className="w-4 h-4 animate-spin text-emerald-500" />
+                        <span>Aguardando recebimento do PIX automático...</span>
+                      </div>
                       <button
-                        onClick={() => handleRechargeSuccess(parseFloat(rechargeAmount))}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-xs shadow-sm transition-all"
+                        onClick={() => {
+                          setShowRechargeModal(false);
+                          setRechargeStep('input');
+                          setCurrentTxId(null);
+                        }}
+                        className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl font-bold text-xs transition-colors"
                       >
-                        Confirmar Pagamento (Simular PIX)
-                      </button>
-                      <button
-                        onClick={() => setRechargeStep('input')}
-                        className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-2.5 rounded-xl font-bold text-xs transition-colors"
-                      >
-                        Voltar
+                        Fechar Janela
                       </button>
                     </div>
                   </div>
