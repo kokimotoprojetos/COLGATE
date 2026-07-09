@@ -814,7 +814,7 @@ export default function ColgateInvestApp() {
           <img
             src="/logo.png"
             alt="Colgate Investimentos"
-            className="h-9 w-auto object-contain drop-shadow-sm"
+            className="h-10 w-auto object-contain drop-shadow-sm"
           />
         </div>
 
