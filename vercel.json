@@ -3,7 +3,13 @@
   "regions": ["gru1"],
   "functions": {
     "app/api/**/*.ts": {
-      "maxDuration": 30
+      "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/yield",
+      "schedule": "0 * * * *"
+    }
+  ]
 }

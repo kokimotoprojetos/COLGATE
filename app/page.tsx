@@ -297,80 +297,14 @@ export default function ColgateInvestApp() {
     router.push('/login');
   };
 
-  // ─── 24-hour daily yield system ─────────────────────────────────────────
-  // Runs on mount and when activePlans loads.
-  // Calculates how many full 24h cycles have passed since last_claimed_at
-  // for each plan, credits those yields immediately to DB + state, then
-  // starts a countdown timer that ticks every second showing time until next yield.
+  // ─── 24-hour yield countdown (display only) ──────────────────────────────
+  // Actual yield crediting runs SERVER-SIDE every hour via the Vercel Cron Job
+  // at /api/cron/yield — completely independent of the user opening the app.
+  // This effect only drives the visual countdown timer in the UI.
 
   const [nextYieldCountdowns, setNextYieldCountdowns] = useState<Record<string, number>>({}); // planId -> seconds remaining
 
-  useEffect(() => {
-    if (!sessionUser || activePlans.length === 0) return;
-
-    const creditPendingYields = async () => {
-      const MS_PER_DAY = 24 * 60 * 60 * 1000;
-      let totalCredited = 0;
-      const updatedPlans = [...activePlans];
-
-      for (let i = 0; i < updatedPlans.length; i++) {
-        const plan = updatedPlans[i];
-        const lastClaimed = new Date(plan.lastClaimedAt).getTime();
-        const now = Date.now();
-        const msSinceLastClaim = now - lastClaimed;
-        const fullCyclesDue = Math.floor(msSinceLastClaim / MS_PER_DAY);
-
-        if (fullCyclesDue >= 1) {
-          const yieldAmount = plan.dailyIncome * fullCyclesDue;
-          const newLastClaimed = new Date(lastClaimed + fullCyclesDue * MS_PER_DAY).toISOString();
-
-          // Credit to DB
-          await supabase.from('profiles').update({
-            balance: profile.balance + totalCredited + yieldAmount,
-            total_income: profile.totalIncome + totalCredited + yieldAmount
-          }).eq('id', sessionUser.id);
-
-          await supabase.from('active_plans').update({
-            last_claimed_at: newLastClaimed,
-            earnings_claimed: plan.earningsClaimed + yieldAmount,
-            earnings_accumulated: plan.earningsAccumulated + yieldAmount
-          }).eq('id', plan.id);
-
-          // Record transaction for each cycle
-          await supabase.from('transactions').insert([{
-            user_id: sessionUser.id,
-            type: 'yield',
-            amount: yieldAmount,
-            status: 'completed',
-            details: `Rendimento diário: ${plan.name} (${fullCyclesDue}x R$ ${plan.dailyIncome.toFixed(2)})`
-          }]);
-
-          totalCredited += yieldAmount;
-          updatedPlans[i] = {
-            ...plan,
-            lastClaimedAt: newLastClaimed,
-            earningsClaimed: plan.earningsClaimed + yieldAmount,
-            earningsAccumulated: plan.earningsAccumulated + yieldAmount
-          };
-        }
-      }
-
-      if (totalCredited > 0) {
-        setProfile(prev => ({
-          ...prev,
-          balance: prev.balance + totalCredited,
-          totalIncome: prev.totalIncome + totalCredited
-        }));
-        setActivePlans(updatedPlans);
-        triggerToast(`+R$ ${totalCredited.toFixed(2)} de rendimento diário creditado!`, 'success');
-      }
-    };
-
-    creditPendingYields();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionUser, activePlans.length]);
-
-  // Countdown timer: ticks every second, shows seconds until next 24h yield for each plan
+  // Countdown timer: ticks every second, shows time until next 24h yield for each plan
   useEffect(() => {
     if (activePlans.length === 0) return;
     const MS_PER_DAY = 24 * 60 * 60 * 1000;
