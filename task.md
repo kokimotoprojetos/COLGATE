@@ -1,9 +1,10 @@
-# Tasks - Adaptar para Vercel
+# Tasks - Integração do Supabase
 
-- [x] Modificar `next.config.ts` - remover `output: 'standalone'` e bloco webpack do AI Studio
-- [x] Modificar `.env.example` - atualizar comentários para Vercel
-- [x] Criar `vercel.json` - configurar região e funções
-- [x] Modificar `README.md` - instruções de deploy no Vercel
-- [x] Modificar `package.json` - remover `firebase-tools`
+- [x] Configurar variáveis de ambiente (`.env.local` e `.env.example`)
+- [x] Instalar SDK `@supabase/supabase-js`
+- [x] Criar arquivo de esquema SQL `supabase_schema.sql`
+- [x] Criar cliente do Supabase em `lib/supabase.ts`
+- [x] Criar página de autenticação (Login e Registro) em `app/login/page.tsx`
+- [x] Modificar `app/page.tsx` para persistir dados no banco e gerenciar sessão
 - [x] Verificar build local
-- [x] Remover emojis para aparencia profissional
+- [x] Enviar atualizações para o GitHub

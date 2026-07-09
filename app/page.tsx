@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { supabase } from '../lib/supabase';
+import { useRouter } from 'next/navigation';
 import { 
   Home, 
   Package, 
@@ -144,33 +146,28 @@ const PLANS_CATALOG = [
 ];
 
 export default function ColgateInvestApp() {
+  const router = useRouter();
+  const [sessionUser, setSessionUser] = useState<any>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
+
   // Current active navigation tab
   const [activeTab, setActiveTab] = useState<'home' | 'products' | 'support' | 'team' | 'profile'>('home');
   
   // App States
   const [profile, setProfile] = useState<UserProfile>({
-    username: 'Investidor Colgate',
-    balance: 10.00, // R$ 10 free starting bonus
+    username: 'Carregando...',
+    balance: 0.00,
     totalRecharge: 0.00,
     totalWithdrawal: 0.00,
     totalIncome: 0.00,
     pixKey: '',
     pixType: 'cpf',
-    idCode: 'COLG-4981',
-    registerDate: '08/07/2026'
+    idCode: 'COLG-0000',
+    registerDate: '00/00/0000'
   });
 
   const [activePlans, setActivePlans] = useState<PurchasedPlan[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: 'tx-0',
-      type: 'yield',
-      amount: 10.00,
-      status: 'completed',
-      date: '08/07/2026 12:00',
-      details: 'Bônus Colgate de boas-vindas'
-    }
-  ]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   // Support Chat states
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
@@ -210,32 +207,131 @@ export default function ColgateInvestApp() {
     setTimeout(() => setShowToast(null), 3000);
   };
 
-  // Load state from LocalStorage on mount
+  // Check Auth & Fetch Data
   useEffect(() => {
-    const savedProfile = localStorage.getItem('colgate_profile');
-    const savedPlans = localStorage.getItem('colgate_plans');
-    const savedTransactions = localStorage.getItem('colgate_transactions');
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+      } else {
+        setSessionUser(session.user);
+        await loadUserData(session.user.id);
+      }
+      setLoadingAuth(false);
+    };
 
-    if (savedProfile) setProfile(JSON.parse(savedProfile));
-    if (savedPlans) setActivePlans(JSON.parse(savedPlans));
-    if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
-    
-    // Randomize a custom registration ID on first load if not set
-    if (!savedProfile) {
-      const randomID = `COLG-${Math.floor(1000 + Math.random() * 9000)}`;
-      setProfile(prev => {
-        const next = { ...prev, idCode: randomID };
-        localStorage.setItem('colgate_profile', JSON.stringify(next));
-        return next;
-      });
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        router.push('/login');
+      } else if (session) {
+        setSessionUser(session.user);
+        await loadUserData(session.user.id);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [router]);
+
+  const loadUserData = async (userId: string) => {
+    try {
+      // 1. Fetch Profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+      } else if (profileData) {
+        setProfile({
+          username: profileData.username,
+          balance: parseFloat(profileData.balance),
+          totalRecharge: parseFloat(profileData.total_recharge),
+          totalWithdrawal: parseFloat(profileData.total_withdrawal),
+          totalIncome: parseFloat(profileData.total_income),
+          pixKey: profileData.pix_key || '',
+          pixType: profileData.pix_type || 'cpf',
+          idCode: profileData.id_code,
+          registerDate: new Date(profileData.created_at).toLocaleDateString('pt-BR')
+        });
+        setTempPixKey(profileData.pix_key || '');
+        setTempPixType(profileData.pix_type || 'cpf');
+      }
+
+      // 2. Fetch Active Plans
+      const { data: plansData, error: plansError } = await supabase
+        .from('active_plans')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (plansError) {
+        console.error('Error fetching plans:', plansError);
+      } else if (plansData) {
+        const formattedPlans: PurchasedPlan[] = plansData.map(p => ({
+          id: p.id,
+          planId: p.plan_id,
+          name: p.name,
+          price: parseFloat(p.price),
+          dailyIncome: parseFloat(p.daily_income),
+          cycleDays: p.cycle_days,
+          purchasedAt: new Date(p.purchased_at).toLocaleString('pt-BR'),
+          lastClaimedAt: p.last_claimed_at,
+          earningsClaimed: parseFloat(p.earnings_claimed || 0),
+          earningsAccumulated: parseFloat(p.earnings_accumulated || 0)
+        }));
+        setActivePlans(formattedPlans);
+      }
+
+      // 3. Fetch Transactions
+      const { data: txsData, error: txsError } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (txsError) {
+        console.error('Error fetching transactions:', txsError);
+      } else if (txsData) {
+        const formattedTxs: Transaction[] = txsData.map(t => ({
+          id: t.id,
+          type: t.type as any,
+          amount: parseFloat(t.amount),
+          status: t.status as any,
+          date: new Date(t.created_at).toLocaleString('pt-BR'),
+          details: t.details || ''
+        }));
+        setTransactions(formattedTxs);
+      }
+    } catch (e) {
+      console.error('Error loading data:', e);
     }
-  }, []);
+  };
 
-  // Save states to LocalStorage helper
-  const saveStateToStorage = (updatedProfile: UserProfile, updatedPlans: PurchasedPlan[], updatedTransactions: Transaction[]) => {
-    localStorage.setItem('colgate_profile', JSON.stringify(updatedProfile));
-    localStorage.setItem('colgate_plans', JSON.stringify(updatedPlans));
-    localStorage.setItem('colgate_transactions', JSON.stringify(updatedTransactions));
+  const handleLogout = async () => {
+    if (sessionUser) {
+      try {
+        // Final sync of balance/earnings
+        await supabase.from('profiles').update({
+          balance: profile.balance,
+          total_income: profile.totalIncome
+        }).eq('id', sessionUser.id);
+
+        for (const plan of activePlans) {
+          await supabase.from('active_plans').update({
+            earnings_accumulated: plan.earningsAccumulated
+          }).eq('id', plan.id);
+        }
+      } catch (err) {
+        console.error('Error in final sync during logout:', err);
+      }
+    }
+    await supabase.auth.signOut();
+    router.push('/login');
   };
 
   // Real-time accelerated yield ticking system
@@ -244,10 +340,8 @@ export default function ColgateInvestApp() {
       if (activePlans.length === 0) return;
 
       // Accelerate accumulation: every 3 seconds ticks 1% of the daily yield of all active plans
-      // This is highly visual and satisfying, allowing the user to watch their earnings rise.
       let accruedAmount = 0;
       const updatedPlans = activePlans.map(plan => {
-        // Daily yield divided by 2400 (simulating fast hours)
         const tickGain = plan.dailyIncome / 800; 
         accruedAmount += tickGain;
         return {
@@ -257,21 +351,41 @@ export default function ColgateInvestApp() {
       });
 
       if (accruedAmount > 0) {
-        setProfile(prev => {
-          const next = {
-            ...prev,
-            balance: prev.balance + accruedAmount,
-            totalIncome: prev.totalIncome + accruedAmount
-          };
-          saveStateToStorage(next, updatedPlans, transactions);
-          return next;
-        });
+        setProfile(prev => ({
+          ...prev,
+          balance: prev.balance + accruedAmount,
+          totalIncome: prev.totalIncome + accruedAmount
+        }));
         setActivePlans(updatedPlans);
       }
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [activePlans, transactions]);
+  }, [activePlans]);
+
+  // Periodic database sync (every 15 seconds) to persist ticking earnings
+  useEffect(() => {
+    if (!sessionUser) return;
+
+    const syncInterval = setInterval(async () => {
+      try {
+        await supabase.from('profiles').update({
+          balance: profile.balance,
+          total_income: profile.totalIncome
+        }).eq('id', sessionUser.id);
+
+        for (const plan of activePlans) {
+          await supabase.from('active_plans').update({
+            earnings_accumulated: plan.earningsAccumulated
+          }).eq('id', plan.id);
+        }
+      } catch (err) {
+        console.error('Error syncing real-time earnings to Supabase:', err);
+      }
+    }, 15000);
+
+    return () => clearInterval(syncInterval);
+  }, [profile.balance, profile.totalIncome, activePlans, sessionUser]);
 
   // Autoscroll chat
   useEffect(() => {
@@ -349,16 +463,46 @@ export default function ColgateInvestApp() {
     setRechargeStep('qr');
   };
 
-  const handleSimulatePaymentCompletion = () => {
+  const handleSimulatePaymentCompletion = async () => {
+    if (!sessionUser) return;
     const amt = parseFloat(rechargeAmount);
+    
+    const newBalance = profile.balance + amt;
+    const newTotalRecharge = profile.totalRecharge + amt;
+
     const updatedProfile = {
       ...profile,
-      balance: profile.balance + amt,
-      totalRecharge: profile.totalRecharge + amt
+      balance: newBalance,
+      totalRecharge: newTotalRecharge
     };
 
+    // DB: Insert transaction
+    const { data: txData, error: txError } = await supabase.from('transactions').insert([
+      {
+        user_id: sessionUser.id,
+        type: 'deposit',
+        amount: amt,
+        status: 'completed',
+        details: 'Recarga aprovada via PIX'
+      }
+    ]).select().single();
+
+    if (txError) {
+      console.error('Error saving deposit transaction:', txError);
+    }
+
+    // DB: Update profile balance
+    const { error: profileError } = await supabase.from('profiles').update({
+      balance: newBalance,
+      total_recharge: newTotalRecharge
+    }).eq('id', sessionUser.id);
+
+    if (profileError) {
+      console.error('Error updating profile balance after deposit:', profileError);
+    }
+
     const newTx: Transaction = {
-      id: `tx-dep-${Date.now()}`,
+      id: txData?.id || `tx-dep-${Date.now()}`,
       type: 'deposit',
       amount: amt,
       status: 'completed',
@@ -370,7 +514,6 @@ export default function ColgateInvestApp() {
 
     setProfile(updatedProfile);
     setTransactions(updatedTxs);
-    saveStateToStorage(updatedProfile, activePlans, updatedTxs);
 
     setShowRechargeModal(false);
     setRechargeStep('input');
@@ -378,7 +521,8 @@ export default function ColgateInvestApp() {
   };
 
   // Simulating Withdrawal Flow
-  const handleConfirmWithdrawal = () => {
+  const handleConfirmWithdrawal = async () => {
+    if (!sessionUser) return;
     const amt = parseFloat(withdrawAmount);
     const key = profile.pixKey || tempPixKey;
 
@@ -397,20 +541,49 @@ export default function ColgateInvestApp() {
 
     setWithdrawError('');
 
-    // Deduct balance and register withdrawal transaction as processing
+    const newBalance = profile.balance - amt;
+    const newTotalWithdrawal = profile.totalWithdrawal + amt;
+
     const updatedProfile = {
       ...profile,
-      balance: profile.balance - amt,
-      totalWithdrawal: profile.totalWithdrawal + amt,
+      balance: newBalance,
+      totalWithdrawal: newTotalWithdrawal,
       pixKey: key,
       pixType: tempPixType
     };
 
+    // DB: Insert withdrawal transaction as pending
+    const { data: txData, error: txError } = await supabase.from('transactions').insert([
+      {
+        user_id: sessionUser.id,
+        type: 'withdrawal',
+        amount: amt,
+        status: 'pending',
+        details: `Saque PIX para chave: ${key}`
+      }
+    ]).select().single();
+
+    if (txError) {
+      console.error('Error saving withdrawal transaction:', txError);
+    }
+
+    // DB: Update profile balance and PIX settings
+    const { error: profileError } = await supabase.from('profiles').update({
+      balance: newBalance,
+      total_withdrawal: newTotalWithdrawal,
+      pix_key: key,
+      pix_type: tempPixType
+    }).eq('id', sessionUser.id);
+
+    if (profileError) {
+      console.error('Error updating profile after withdrawal:', profileError);
+    }
+
     const newTx: Transaction = {
-      id: `tx-wit-${Date.now()}`,
+      id: txData?.id || `tx-wit-${Date.now()}`,
       type: 'withdrawal',
       amount: amt,
-      status: 'pending', // Starts pending to mimic high-fidelity transaction review
+      status: 'pending',
       date: new Date().toLocaleString('pt-BR'),
       details: `Saque PIX para chave: ${key}`
     };
@@ -419,22 +592,24 @@ export default function ColgateInvestApp() {
 
     setProfile(updatedProfile);
     setTransactions(updatedTxs);
-    saveStateToStorage(updatedProfile, activePlans, updatedTxs);
 
     setShowWithdrawModal(false);
     setWithdrawAmount('');
     triggerToast(`Saque de R$ ${amt.toFixed(2)} solicitado com sucesso!`, 'success');
 
     // Simulate completion in 15 seconds to show dynamic status updating
-    setTimeout(() => {
+    setTimeout(async () => {
+      if (txData?.id) {
+        await supabase.from('transactions').update({ status: 'completed' }).eq('id', txData.id);
+      }
+
       setTransactions(prevTxs => {
         const nextTxs = prevTxs.map(t => {
-          if (t.id === newTx.id) {
+          if (t.id === (txData?.id || newTx.id)) {
             return { ...t, status: 'completed' as const };
           }
           return t;
         });
-        localStorage.setItem('colgate_transactions', JSON.stringify(nextTxs));
         return nextTxs;
       });
       triggerToast(`Saque de R$ ${amt.toFixed(2)} enviado para sua conta bancária via PIX!`, 'success');
@@ -442,7 +617,7 @@ export default function ColgateInvestApp() {
   };
 
   // Purchasing investment plans
-  const handleBuyPlan = (plan: typeof PLANS_CATALOG[0]) => {
+  const handleBuyPlan = async (plan: typeof PLANS_CATALOG[0]) => {
     if (profile.balance < plan.price) {
       setShowBuyModal(null);
       // Open recharge instead
@@ -452,14 +627,56 @@ export default function ColgateInvestApp() {
       return;
     }
 
-    // Process Purchase
+    if (!sessionUser) return;
+
+    const newBalance = profile.balance - plan.price;
     const updatedProfile = {
       ...profile,
-      balance: profile.balance - plan.price
+      balance: newBalance
     };
 
+    // DB: Add active plan
+    const { data: planData, error: planError } = await supabase.from('active_plans').insert([
+      {
+        user_id: sessionUser.id,
+        plan_id: plan.id,
+        name: plan.name,
+        price: plan.price,
+        daily_income: plan.dailyIncome,
+        cycle_days: plan.cycleDays
+      }
+    ]).select().single();
+
+    if (planError) {
+      console.error('Error saving active plan:', planError);
+    }
+
+    // DB: Insert transaction
+    const { data: txData, error: txError } = await supabase.from('transactions').insert([
+      {
+        user_id: sessionUser.id,
+        type: 'investment',
+        amount: plan.price,
+        status: 'completed',
+        details: `Compra do plano: ${plan.name}`
+      }
+    ]).select().single();
+
+    if (txError) {
+      console.error('Error saving investment transaction:', txError);
+    }
+
+    // DB: Update profile balance
+    const { error: profileError } = await supabase.from('profiles').update({
+      balance: newBalance
+    }).eq('id', sessionUser.id);
+
+    if (profileError) {
+      console.error('Error updating profile after plan purchase:', profileError);
+    }
+
     const newPurchasedPlan: PurchasedPlan = {
-      id: `plan-active-${Date.now()}`,
+      id: planData?.id || `plan-active-${Date.now()}`,
       planId: plan.id,
       name: plan.name,
       price: plan.price,
@@ -472,7 +689,7 @@ export default function ColgateInvestApp() {
     };
 
     const newTx: Transaction = {
-      id: `tx-inv-${Date.now()}`,
+      id: txData?.id || `tx-inv-${Date.now()}`,
       type: 'investment',
       amount: plan.price,
       status: 'completed',
@@ -486,7 +703,6 @@ export default function ColgateInvestApp() {
     setProfile(updatedProfile);
     setActivePlans(updatedPlans);
     setTransactions(updatedTxs);
-    saveStateToStorage(updatedProfile, updatedPlans, updatedTxs);
 
     setShowBuyModal(null);
     triggerToast(`Plano ${plan.name} ativado! Rendimentos começaram a ser gerados em tempo real.`, 'success');
@@ -588,6 +804,21 @@ export default function ColgateInvestApp() {
         );
     }
   };
+
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <RefreshCw className="w-8 h-8 text-colgate-red animate-spin" />
+          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider animate-pulse">Verificando sessão segura...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sessionUser) {
+    return null;
+  }
 
   return (
     <div id="colgate-root" className="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative flex flex-col pb-20 select-none overflow-x-hidden">
@@ -1274,14 +1505,25 @@ export default function ColgateInvestApp() {
                       className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-colgate-red"
                     />
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         if (!tempPixKey.trim()) {
                           triggerToast('Escreva sua chave PIX antes de salvar.', 'error');
                           return;
                         }
                         const updated = { ...profile, pixKey: tempPixKey, pixType: tempPixType };
                         setProfile(updated);
-                        localStorage.setItem('colgate_profile', JSON.stringify(updated));
+                        
+                        if (sessionUser) {
+                          const { error } = await supabase.from('profiles').update({
+                            pix_key: tempPixKey,
+                            pix_type: tempPixType
+                          }).eq('id', sessionUser.id);
+                          if (error) {
+                            console.error('Error saving PIX key to DB:', error);
+                            triggerToast('Erro ao salvar no banco de dados.', 'error');
+                            return;
+                          }
+                        }
                         triggerToast('Chave PIX atualizada e salva!', 'success');
                       }}
                       className="bg-colgate-blue hover:bg-blue-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm transition-colors"
@@ -1334,42 +1576,17 @@ export default function ColgateInvestApp() {
                 </div>
               </div>
 
-              {/* Quick Simulator Reset Account */}
-              <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 flex justify-between items-center">
+              {/* Logout Button */}
+              <div className="bg-slate-100 border border-slate-200 rounded-2xl p-4 flex justify-between items-center">
                 <div>
-                  <h4 className="text-xs font-bold text-rose-800">Simulador de Demonstração</h4>
-                  <p className="text-[10px] text-rose-600">Reinicie seu saldo para refazer testes.</p>
+                  <h4 className="text-xs font-bold text-slate-700">Sessão Ativa</h4>
+                  <p className="text-[10px] text-slate-500">Desconectar e salvar seus dados com segurança.</p>
                 </div>
                 <button 
-                  onClick={() => {
-                    const cleanProfile: UserProfile = {
-                      username: 'Investidor Colgate',
-                      balance: 10.00,
-                      totalRecharge: 0.00,
-                      totalWithdrawal: 0.00,
-                      totalIncome: 0.00,
-                      pixKey: '',
-                      pixType: 'cpf',
-                      idCode: `COLG-${Math.floor(1000 + Math.random() * 9000)}`,
-                      registerDate: '08/07/2026'
-                    };
-                    const cleanTxs: Transaction[] = [{
-                      id: 'tx-0',
-                      type: 'yield',
-                      amount: 10.00,
-                      status: 'completed',
-                      date: '08/07/2026 12:00',
-                      details: 'Bônus Colgate de boas-vindas'
-                    }];
-                    setProfile(cleanProfile);
-                    setActivePlans([]);
-                    setTransactions(cleanTxs);
-                    saveStateToStorage(cleanProfile, [], cleanTxs);
-                    triggerToast('Sua conta do simulador foi reiniciada!', 'info');
-                  }}
-                  className="bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold py-2 px-3.5 rounded-xl transition-all shadow-sm"
+                  onClick={handleLogout}
+                  className="bg-colgate-red hover:bg-colgate-dark-red text-white text-[11px] font-bold py-2 px-3.5 rounded-xl transition-all shadow-sm"
                 >
-                  Reiniciar Conta
+                  Sair da Conta
                 </button>
               </div>
             </motion.div>
