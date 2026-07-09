@@ -427,8 +427,10 @@ export default function ColgateInvestApp() {
     const pollInterval = setInterval(async () => {
       attempts++;
       try {
-        const res = await fetch(`/api/pix-status?txid=${currentTxId}`);
-        const data = await res.json();
+      console.log('Manual payment check, currentTxId:', currentTxId);
+      const res = await fetch(`/api/pix-status?txid=${currentTxId}`);
+      const data = await res.json();
+      console.log('Manual check response data:', data);
         console.log('Polling PIX status', { txid: currentTxId, attempts, data });
 
         const rawStatus = data.status || (data.charge && data.charge.status) || '';
@@ -519,6 +521,8 @@ export default function ColgateInvestApp() {
       setRechargePixCode(data.copyPaste || '');
       setRechargeQrCodeBase64(data.qrcode || '');
       setCurrentTxId(data.txid || data.id || data.charge_id || null);
+      console.log('Generated payment, currentTxId set to', data.txid || data.id || data.charge_id || null);
+      console.log('Full pix-recharge response', data);
       setRechargeStep('qr');
       triggerToast('PIX gerado com sucesso! Aguardando pagamento.', 'success');
     } catch (error: any) {
