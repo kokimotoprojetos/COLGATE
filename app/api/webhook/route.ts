@@ -19,7 +19,8 @@ export async function POST(request: Request) {
 
     // ── Validate HMAC-SHA256 signature from LytronPay ──────────────────────
     const secretHash = cleanKey(process.env.LYTRON_WEBHOOK_SECRET || '');
-    const receivedSig = request.headers.get('transaction-hash') || request.headers.get('x-transaction-hash') || request.headers.get('x-webhook-signature') || '';
+    let receivedSig = request.headers.get('transaction-hash') || request.headers.get('x-transaction-hash') || request.headers.get('x-webhook-signature') || request.headers.get('x-signature') || request.headers.get('x-gateway-signature') || '';
+    if (receivedSig.startsWith('sha256=')) receivedSig = receivedSig.substring(7);
 
     if (secretHash && receivedSig) {
       const expectedSig = crypto
