@@ -1712,8 +1712,7 @@ if (chargeStatus === 'paid' || chargeStatus === 'completed') {
                   return null;
                 })()}
 
-                {!profile.pixKey && (
-                  <div className="space-y-2">
+                <div className="space-y-2">
                     <label className="text-[10px] text-slate-400 font-bold uppercase block">Chave PIX de Destino</label>
                     <div className="flex gap-1.5 bg-slate-100 p-1 rounded-xl">
                       {['cpf', 'email', 'telefone', 'aleatoria'].map(t => (
@@ -1734,7 +1733,6 @@ if (chargeStatus === 'paid' || chargeStatus === 'completed') {
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-colgate-blue"
                     />
                   </div>
-                )}
 
                 {withdrawError && (
                   <div className="bg-rose-50 border border-rose-100 text-rose-800 p-3 rounded-xl flex items-center gap-2 text-[10px] font-semibold">
