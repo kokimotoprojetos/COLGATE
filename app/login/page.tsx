@@ -34,12 +34,16 @@ export default function AuthPage() {
     checkUser();
   }, [router]);
 
-  // Read referral code from URL (?ref=COLG-XXXX)
+  // Read referral code from URL (?ref=COLG-XXXX) or localStorage fallback
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const ref = params.get('ref');
+    let ref = params.get('ref');
+    if (!ref) {
+      ref = localStorage.getItem('referred_by');
+    }
     if (ref) {
       setReferralCode(ref);
+      localStorage.setItem('referred_by', ref); // Ensure persisted in localStorage
     }
   }, []);
 

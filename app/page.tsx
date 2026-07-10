@@ -184,12 +184,26 @@ export default function ColgateInvestApp() {
     setTimeout(() => setShowToast(null), 3000);
   };
 
+  // Capture referral code from URL and persist it in localStorage
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      localStorage.setItem('referred_by', ref);
+    }
+  }, []);
+
   // Check Auth & Fetch Data
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        router.push('/login');
+        const storedRef = localStorage.getItem('referred_by');
+        if (storedRef) {
+          router.push(`/login?ref=${storedRef}`);
+        } else {
+          router.push('/login');
+        }
       } else {
         setSessionUser(session.user);
         await loadUserData(session.user.id);
@@ -206,7 +220,12 @@ export default function ColgateInvestApp() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
-        router.push('/login');
+        const storedRef = localStorage.getItem('referred_by');
+        if (storedRef) {
+          router.push(`/login?ref=${storedRef}`);
+        } else {
+          router.push('/login');
+        }
       } else if (session) {
         setSessionUser(session.user);
         await loadUserData(session.user.id);
