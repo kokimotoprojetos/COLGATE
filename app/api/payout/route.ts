@@ -2,9 +2,14 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
+const cleanKey = (key: string) => {
+  if (!key) return '';
+  return key.trim().replace(/^['\"]|['\"]$/g, '');
+};
+
 const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+  cleanKey(process.env.NEXT_PUBLIC_SUPABASE_URL || ''),
+  cleanKey(process.env.SUPABASE_SERVICE_ROLE_KEY || ''),
   { auth: { persistSession: false, autoRefreshToken: false } }
 );
 
