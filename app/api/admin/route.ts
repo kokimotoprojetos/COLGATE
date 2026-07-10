@@ -239,13 +239,22 @@ export async function POST(request: Request) {
         return jsonResponse({ error: 'Perfil do usuário não encontrado' }, 404);
       }
 
-      const pixKey = userProfile.pix_key;
-      const pixType = userProfile.pix_type || 'cpf';
+      // Extract PIX details from the transaction details string
+      let pixKey = userProfile.pix_key;
+      let pixType = userProfile.pix_type || 'cpf';
+
+      const detailsStr = tx.details || '';
+      const keyMatch = detailsStr.match(/chave:\s*([^|]+)/);
+      const typeMatch = detailsStr.match(/tipo:\s*([^|]+)/);
+
+      if (keyMatch && keyMatch[1]) pixKey = keyMatch[1].trim();
+      if (typeMatch && typeMatch[1]) pixType = typeMatch[1].trim();
+
       const pixTypeMap: Record<string, string> = { cpf: 'cpf', email: 'email', telefone: 'phone', aleatoria: 'evp' };
       const mappedPixType = pixTypeMap[pixType] || pixType;
 
       if (!pixKey) {
-        return jsonResponse({ error: 'Usuário não possui uma chave PIX cadastrada' }, 400);
+        return jsonResponse({ error: 'Solicitação de saque não contém chave PIX.' }, 400);
       }
 
       const apiKey = cleanKey(process.env.LYTRON_API_KEY || '');

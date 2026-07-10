@@ -700,48 +700,7 @@ export default function ColgateInvestApp() {
     setShowWithdrawModal(false);
     setWithdrawAmount('');
     setWithdrawName('');
-    triggerToast(`Saque solicitado! Processando envio de R$ ${netAmount.toFixed(2)} via PIX...`, 'success');
-
-    // ── Call Lytron Pay to process the payout automatically ──
-    try {
-      const payoutRes = await fetch('/api/payout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: netAmount,           // Net amount after 12% fee
-          pixKey: key,
-          pixType: tempPixType,        // Will be mapped server-side (aleatoria→evp, telefone→phone)
-          userName: withdrawName.trim(),
-          userId: sessionUser.id,
-          transactionId: txData?.id
-        })
-      });
-
-      const payoutData = await payoutRes.json();
-
-      if (!payoutRes.ok) {
-        // Lytron rejected the payout — restore balance and mark transaction failed
-        await supabase.from('profiles').update({
-          balance: profile.balance,
-          total_withdrawal: profile.totalWithdrawal
-        }).eq('id', sessionUser.id);
-
-        setProfile({ ...profile });
-        setTransactions(prev => prev.map(t =>
-          t.id === newTx.id ? { ...t, status: 'failed' as const } : t
-        ));
-        triggerToast(`Erro no saque: ${payoutData.error || 'Tente novamente'}`, 'error');
-      } else {
-        // Payout accepted by Lytron
-        setTransactions(prev => prev.map(t =>
-          t.id === newTx.id ? { ...t, status: 'completed' as const } : t
-        ));
-        triggerToast(`Saque de R$ ${netAmount.toFixed(2)} enviado com sucesso via PIX!`, 'success');
-      }
-    } catch (payoutErr: any) {
-      console.error('Payout API call failed:', payoutErr);
-      triggerToast('Saque registrado. Será processado em até 1 dia útil.', 'info');
-    }
+    triggerToast('Solicitação de saque registrada com sucesso! Aguardando aprovação administrativa.', 'success');
   };
 
   // Purchasing investment plans
