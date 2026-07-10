@@ -73,22 +73,30 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action, params } = body;
 
-    // 3. Verificação de token ADMIN_TOKEN (preferencial)
+    // 3. Verificação de credenciais administrativas
     const adminToken = process.env.ADMIN_TOKEN;
     const authHeader = request.headers.get('authorization') || '';
     const token = authHeader.replace('Bearer ', '').trim();
-    if (adminToken) {
-      if (token !== adminToken) {
-        return new Response(JSON.stringify({ error: 'Credenciais administrativas inválidas' }), { status: 401, headers: corsHeaders });
+
+    let isAuthorized = false;
+
+    // Se um token Bearer for fornecido, valida contra o token cadastrado
+    if (token && adminToken) {
+      if (token === adminToken) {
+        isAuthorized = true;
       }
     } else {
-      // Fallback: checa username/password como antes (para compatibilidade)
+      // Caso contrário, valida usando username/password fornecidos no corpo da requisição
       const { username, password } = body as any;
       const envAdminUser = process.env.ADMIN_USERNAME || 'admin';
       const envAdminPass = process.env.ADMIN_PASSWORD || 'colgate2026admin';
-      if (username !== envAdminUser || password !== envAdminPass) {
-        return new Response(JSON.stringify({ error: 'Credenciais administrativas inválidas' }), { status: 401, headers: corsHeaders });
+      if (username === envAdminUser && password === envAdminPass) {
+        isAuthorized = true;
       }
+    }
+
+    if (!isAuthorized) {
+      return new Response(JSON.stringify({ error: 'Credenciais administrativas inválidas' }), { status: 401, headers: corsHeaders });
     }
 
     if (supabaseServiceKey === 'placeholder-service-key' || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
