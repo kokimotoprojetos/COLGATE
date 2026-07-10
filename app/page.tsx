@@ -159,6 +159,9 @@ export default function ColgateInvestApp() {
 
   const [showBuyModal, setShowBuyModal] = useState<typeof PLANS_CATALOG[0] | null>(null);
 
+  // Telegram popup — shown once per session after login
+  const [showTelegramPopup, setShowTelegramPopup] = useState(false);
+
   // Notifications State
   const [showToast, setShowToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
 
@@ -180,6 +183,11 @@ export default function ColgateInvestApp() {
       } else {
         setSessionUser(session.user);
         await loadUserData(session.user.id);
+        // Show Telegram popup once per session
+        if (!sessionStorage.getItem('tg_popup_shown')) {
+          setTimeout(() => setShowTelegramPopup(true), 1200);
+          sessionStorage.setItem('tg_popup_shown', '1');
+        }
       }
       setLoadingAuth(false);
     };
@@ -1959,6 +1967,72 @@ export default function ColgateInvestApp() {
         )}
       </AnimatePresence>
 
+      {/* ── TELEGRAM GROUP POPUP ─────────────────────────────────────────── */}
+      <AnimatePresence>
+        {showTelegramPopup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowTelegramPopup(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 40 }}
+              transition={{ type: 'spring', damping: 18, stiffness: 260 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl w-full max-w-xs overflow-hidden shadow-2xl"
+            >
+              {/* Header azul Telegram */}
+              <div className="bg-gradient-to-br from-[#229ED9] to-[#1a7bbf] p-6 text-white text-center relative">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg viewBox="0 0 24 24" className="w-9 h-9 fill-white">
+                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg font-black tracking-wide">Grupo Oficial</h3>
+                <p className="text-white/80 text-xs mt-1 font-medium">Colgate Invest no Telegram</p>
+              </div>
+
+              {/* Body */}
+              <div className="p-5 text-center space-y-4">
+                <div className="space-y-1">
+                  <p className="text-slate-800 font-bold text-sm">
+                    🎉 Bem-vindo(a) à comunidade!
+                  </p>
+                  <p className="text-slate-500 text-xs leading-relaxed">
+                    Junte-se ao nosso grupo no Telegram para receber novidades, suporte e dicas exclusivas de investimento.
+                  </p>
+                </div>
+
+                <a
+                  href="https://t.me/+vQ9VDQf8ya01Y2Qx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setShowTelegramPopup(false)}
+                  className="flex items-center justify-center gap-2 w-full bg-[#229ED9] hover:bg-[#1a7bbf] text-white font-bold py-3 rounded-2xl text-sm transition-all shadow-md shadow-sky-200 active:scale-95"
+                >
+                  <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
+                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                  </svg>
+                  Entrar no Grupo
+                </a>
+
+                <button
+                  onClick={() => setShowTelegramPopup(false)}
+                  className="w-full text-slate-400 text-xs py-1 hover:text-slate-600 transition-colors"
+                >
+                  Agora não
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
+
   );
 }
