@@ -631,21 +631,9 @@ export default function ColgateInvestApp() {
         setWithdrawError('Chave CPF inválida. Certifique-se de preencher 11 dígitos.');
         return;
       }
-    } else if (tempPixType === 'telefone') {
-      const cleanPhone = trimmedKey.replace(/\D/g, '');
-      if (cleanPhone.length < 10 || cleanPhone.length > 11) {
-        setWithdrawError('Chave Telefone inválida. Deve conter DDD + número (10 ou 11 dígitos).');
-        return;
-      }
     } else if (tempPixType === 'email') {
       if (!trimmedKey.includes('@') || !trimmedKey.includes('.')) {
         setWithdrawError('E-mail de chave PIX inválido.');
-        return;
-      }
-    } else if (tempPixType === 'aleatoria') {
-      const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-      if (!uuidRegex.test(trimmedKey)) {
-        setWithdrawError('Formato de Chave Aleatória inválido. Chaves aleatórias devem seguir o padrão com traços (ex: 123e4567-e89b-12d3-a456-426614174000). Se sua chave é um CPF ou Telefone, por favor, selecione o tipo correspondente acima.');
         return;
       }
     }
@@ -1469,7 +1457,6 @@ export default function ColgateInvestApp() {
                 <div className="space-y-1">
                   <h3 className="text-base font-bold text-slate-800">{profile.username}</h3>
                   <p className="text-[10px] text-slate-400 font-bold uppercase">Membro VIP Colgate desde {profile.registerDate}</p>
-                  <p className="text-xs font-semibold text-slate-600">PIX Cadastrado: {profile.pixKey || <span className="text-rose-500">Pendente de Chave</span>}</p>
                 </div>
               </div>
 
@@ -1486,68 +1473,6 @@ export default function ColgateInvestApp() {
                   <span className="text-base font-bold text-slate-800">
                     R$ {profile.totalWithdrawal.toFixed(2)}
                   </span>
-                </div>
-              </div>
-
-              {/* Register/Modify PIX Key Area */}
-              <div className="bg-white border border-slate-100 rounded-2xl p-4 space-y-3 shadow-sm">
-                <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <Icon icon="streamline-color:wallet" className="w-4 h-4 text-colgate-red" /> Chave PIX de Saque
-                </h3>
-                
-                <div className="space-y-3">
-                  <div className="flex gap-2 bg-slate-100 p-1 rounded-xl">
-                    {['cpf', 'email', 'telefone', 'aleatoria'].map(type => (
-                      <button
-                        key={type}
-                        onClick={() => setTempPixType(type)}
-                        className={`flex-1 py-1.5 text-[9px] uppercase font-black rounded-lg transition-all ${tempPixType === type ? 'bg-white text-colgate-red shadow-sm' : 'text-slate-500'}`}
-                      >
-                        {type === 'aleatoria' ? 'Chave Aleat.' : type}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      placeholder={
-                        tempPixType === 'cpf' ? '000.000.000-00' :
-                        tempPixType === 'email' ? 'exemplo@colgate.com' :
-                        tempPixType === 'telefone' ? '(11) 99999-9999' :
-                        'Informe sua chave PIX completa'
-                      }
-                      value={tempPixKey || profile.pixKey}
-                      onChange={(e) => setTempPixKey(e.target.value)}
-                      className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-colgate-red"
-                    />
-                    <button
-                      onClick={async () => {
-                        if (!tempPixKey.trim()) {
-                          triggerToast('Escreva sua chave PIX antes de salvar.', 'error');
-                          return;
-                        }
-                        const updated = { ...profile, pixKey: tempPixKey, pixType: tempPixType };
-                        setProfile(updated);
-                        
-                        if (sessionUser) {
-                          const { error } = await supabase.from('profiles').update({
-                            pix_key: tempPixKey,
-                            pix_type: tempPixType
-                          }).eq('id', sessionUser.id);
-                          if (error) {
-                            console.error('Error saving PIX key to DB:', error);
-                            triggerToast('Erro ao salvar no banco de dados.', 'error');
-                            return;
-                          }
-                        }
-                        triggerToast('Chave PIX atualizada e salva!', 'success');
-                      }}
-                      className="bg-colgate-blue hover:bg-blue-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm transition-colors"
-                    >
-                      Salvar
-                    </button>
-                  </div>
                 </div>
               </div>
 
@@ -1869,19 +1794,19 @@ export default function ColgateInvestApp() {
                 <div className="space-y-2">
                     <label className="text-[10px] text-slate-400 font-bold uppercase block">Chave PIX de Destino</label>
                     <div className="flex gap-1.5 bg-slate-100 p-1 rounded-xl">
-                      {['cpf', 'email', 'telefone', 'aleatoria'].map(t => (
+                      {['cpf', 'email'].map(t => (
                         <button
                           key={t}
                           onClick={() => setTempPixType(t)}
-                          className={`flex-1 py-1 text-[8px] uppercase font-black rounded-md transition-all ${tempPixType === t ? 'bg-white text-colgate-blue shadow-sm' : 'text-slate-500'}`}
+                          className={`flex-1 py-1.5 text-[10px] uppercase font-black rounded-lg transition-all ${tempPixType === t ? 'bg-white text-colgate-blue shadow-sm shadow-slate-200 font-extrabold' : 'text-slate-500'}`}
                         >
-                          {t === 'aleatoria' ? 'Chave Aleat.' : t}
+                          {t}
                         </button>
                       ))}
                     </div>
                     <input 
                       type="text" 
-                      placeholder="Insira sua Chave PIX"
+                      placeholder={tempPixType === 'cpf' ? 'Digite seu CPF (apenas números)' : 'Digite seu e-mail do PIX'}
                       value={tempPixKey}
                       onChange={(e) => setTempPixKey(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-colgate-blue"
