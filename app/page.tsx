@@ -602,7 +602,7 @@ export default function ColgateInvestApp() {
   const handleConfirmWithdrawal = async () => {
     if (!sessionUser) return;
     const amt = parseFloat(withdrawAmount);
-    const key = profile.pixKey || tempPixKey;
+    const key = tempPixKey; // Use tempPixKey directly as it contains the current input value
 
     // Rule: must have at least one active plan to withdraw
     if (activePlans.length === 0) {
@@ -622,6 +622,34 @@ export default function ColgateInvestApp() {
       setWithdrawError('Por favor, informe uma chave PIX para transferência.');
       return;
     }
+
+    // ── Validation of PIX key format matching selection ──
+    const trimmedKey = key.trim();
+    if (tempPixType === 'cpf') {
+      const cleanCpf = trimmedKey.replace(/\D/g, '');
+      if (cleanCpf.length !== 11) {
+        setWithdrawError('Chave CPF inválida. Certifique-se de preencher 11 dígitos.');
+        return;
+      }
+    } else if (tempPixType === 'telefone') {
+      const cleanPhone = trimmedKey.replace(/\D/g, '');
+      if (cleanPhone.length < 10 || cleanPhone.length > 11) {
+        setWithdrawError('Chave Telefone inválida. Deve conter DDD + número (10 ou 11 dígitos).');
+        return;
+      }
+    } else if (tempPixType === 'email') {
+      if (!trimmedKey.includes('@') || !trimmedKey.includes('.')) {
+        setWithdrawError('E-mail de chave PIX inválido.');
+        return;
+      }
+    } else if (tempPixType === 'aleatoria') {
+      const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+      if (!uuidRegex.test(trimmedKey)) {
+        setWithdrawError('Formato de Chave Aleatória inválido. Chaves aleatórias devem seguir o padrão com traços (ex: 123e4567-e89b-12d3-a456-426614174000). Se sua chave é um CPF ou Telefone, por favor, selecione o tipo correspondente acima.');
+        return;
+      }
+    }
+
     if (!withdrawName.trim()) {
       setWithdrawError('Por favor, informe seu nome completo para o PIX.');
       return;
