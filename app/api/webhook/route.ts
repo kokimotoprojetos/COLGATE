@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { distributeCommissions } from '../../../lib/commissions';
 
 const cleanKey = (key: string) => {
   if (!key) return '';
@@ -132,6 +133,9 @@ export async function POST(request: Request) {
       }
 
       console.log(`Webhook: ✅ Credited R$${tx.amount} to user ${tx.user_id} for txid "${txid}"`);
+
+      // 3. Distribute referral commissions
+      await distributeCommissions(supabaseAdmin, tx.user_id, Number(tx.amount));
     }
 
     return NextResponse.json({ received: true, processed: transactions.length });
