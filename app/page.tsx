@@ -17,6 +17,14 @@ interface UserProfile {
   pixType: string;
   idCode: string;
   registerDate: string;
+  referralEarnings: number;
+}
+
+interface TeamMember {
+  username: string;
+  registerDate: string;
+  status: 'Ativo' | 'Pendente';
+  totalInvested: number;
 }
 
 interface PurchasedPlan {
@@ -133,11 +141,13 @@ export default function ColgateInvestApp() {
     pixKey: '',
     pixType: 'cpf',
     idCode: 'COLG-0000',
-    registerDate: '00/00/0000'
+    registerDate: '00/00/0000',
+    referralEarnings: 0.00
   });
 
   const [activePlans, setActivePlans] = useState<PurchasedPlan[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
   // Modals States
   const [showRechargeModal, setShowRechargeModal] = useState(false);
@@ -229,10 +239,53 @@ export default function ColgateInvestApp() {
           pixKey: profileData.pix_key || '',
           pixType: profileData.pix_type || 'cpf',
           idCode: profileData.id_code,
-          registerDate: new Date(profileData.created_at).toLocaleDateString('pt-BR')
+          registerDate: new Date(profileData.created_at).toLocaleDateString('pt-BR'),
+          referralEarnings: parseFloat(profileData.referral_earnings || 0)
         });
         setTempPixKey(profileData.pix_key || '');
         setTempPixType(profileData.pix_type || 'cpf');
+
+        // Fetch real referral network (Team members)
+        try {
+          const { data: referrals, error: referralsError } = await supabase
+            .from('profiles')
+            .select('id, username, created_at')
+            .eq('referred_by', profileData.id_code);
+
+          if (referralsError) {
+            console.error('Error fetching referrals:', referralsError);
+          } else if (referrals && referrals.length > 0) {
+            const referralIds = referrals.map(r => r.id);
+            const { data: refPlansData, error: refPlansError } = await supabase
+              .from('active_plans')
+              .select('user_id, price')
+              .in('user_id', referralIds);
+
+            if (refPlansError) {
+              console.error('Error fetching referral active plans:', refPlansError);
+            }
+
+            const plansByUserId = (refPlansData || []).reduce((acc: Record<string, number>, curr) => {
+              acc[curr.user_id] = (acc[curr.user_id] || 0) + parseFloat(curr.price);
+              return acc;
+            }, {});
+
+            const formattedTeam: TeamMember[] = referrals.map(r => {
+              const totalInvested = plansByUserId[r.id] || 0;
+              return {
+                username: r.username,
+                registerDate: new Date(r.created_at).toLocaleDateString('pt-BR'),
+                status: totalInvested > 0 ? 'Ativo' : 'Pendente',
+                totalInvested
+              };
+            });
+            setTeamMembers(formattedTeam);
+          } else {
+            setTeamMembers([]);
+          }
+        } catch (err) {
+          console.error('Failed to load referral network:', err);
+        }
       }
 
       // 2. Fetch Active Plans
@@ -1297,15 +1350,17 @@ export default function ColgateInvestApp() {
               <div className="bg-gradient-to-r from-colgate-red to-red-800 text-white rounded-2xl p-5 shadow-md grid grid-cols-3 gap-2 text-center relative overflow-hidden">
                 <div className="space-y-1">
                   <span className="text-[10px] text-white/70 block">Time Total</span>
-                  <span className="text-lg font-bold">4 Afiliados</span>
+                  <span className="text-lg font-bold">{teamMembers.length} Afiliado{teamMembers.length === 1 ? '' : 's'}</span>
                 </div>
                 <div className="space-y-1 border-x border-white/10">
                   <span className="text-[10px] text-white/70 block">Ganhos de Indicação</span>
-                  <span className="text-lg font-bold text-green-300">R$ 15,00</span>
+                  <span className="text-lg font-bold text-green-300">R$ {profile.referralEarnings.toFixed(2)}</span>
                 </div>
                 <div className="space-y-1">
                   <span className="text-[10px] text-white/70 block">Seu Nível</span>
-                  <span className="text-lg font-bold text-amber-300">Vip Bronze</span>
+                  <span className="text-lg font-bold text-amber-300">
+                    {teamMembers.length >= 10 ? 'VIP Ouro' : teamMembers.length >= 5 ? 'VIP Prata' : 'VIP Bronze'}
+                  </span>
                 </div>
               </div>
 
@@ -1367,40 +1422,35 @@ export default function ColgateInvestApp() {
 
               {/* Invited friends list */}
               <div className="space-y-2">
-                <h3 className="text-xs font-bold text-slate-800">Seus Indicados Ativos</h3>
+                <h3 className="text-xs font-bold text-slate-800">Seus Indicados</h3>
                 <div className="space-y-2">
-                  <div className="bg-white border border-slate-100 rounded-xl p-3 flex justify-between items-center text-xs">
-                    <div>
-                      <p className="font-bold text-slate-800">Lucas Santos</p>
-                      <p className="text-[10px] text-slate-400">Registrado em: 07/07/2026</p>
+                  {teamMembers.length === 0 ? (
+                    <div className="text-center py-8 bg-white border border-slate-100 rounded-xl p-4 space-y-2">
+                      <Icon icon="streamline-color:user-multiple-group" className="w-12 h-12 text-slate-300 mx-auto" />
+                      <p className="text-slate-500 text-xs">Você ainda não possui indicados.</p>
+                      <p className="text-[10px] text-slate-400">Compartilhe seu link de afiliado para começar a ganhar comissão!</p>
                     </div>
-                    <div className="text-right">
-                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">Ativo</span>
-                      <p className="font-bold text-slate-700 mt-1">Investido: R$ 50,00</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-white border border-slate-100 rounded-xl p-3 flex justify-between items-center text-xs">
-                    <div>
-                      <p className="font-bold text-slate-800">Ana Júlia Lima</p>
-                      <p className="text-[10px] text-slate-400">Registrada em: 08/07/2026</p>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">Ativo</span>
-                      <p className="font-bold text-slate-700 mt-1">Investido: R$ 100,00</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-white border border-slate-100 rounded-xl p-3 flex justify-between items-center text-xs opacity-60">
-                    <div>
-                      <p className="font-bold text-slate-800">Matheus Moreira</p>
-                      <p className="text-[10px] text-slate-400">Registrado em: 08/07/2026</p>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">Pendente</span>
-                      <p className="font-bold text-slate-500 mt-1">Investido: R$ 0,00</p>
-                    </div>
-                  </div>
+                  ) : (
+                    teamMembers.map((member, idx) => (
+                      <div 
+                        key={idx} 
+                        className={`bg-white border border-slate-100 rounded-xl p-3 flex justify-between items-center text-xs ${member.status === 'Pendente' ? 'opacity-70' : ''}`}
+                      >
+                        <div>
+                          <p className="font-bold text-slate-800">{member.username}</p>
+                          <p className="text-[10px] text-slate-400">Registrado(a) em: {member.registerDate}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${member.status === 'Ativo' ? 'text-emerald-600 bg-emerald-50' : 'text-slate-400 bg-slate-100'}`}>
+                            {member.status}
+                          </span>
+                          <p className="font-bold text-slate-700 mt-1">
+                            Investido: R$ {member.totalInvested.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </motion.div>
