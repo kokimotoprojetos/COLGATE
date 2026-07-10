@@ -610,6 +610,27 @@ export default function ColgateInvestApp() {
       return;
     }
 
+    // Rule: only 1 withdrawal request per 24 hours
+    try {
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data: recentWithdrawals, error: checkWithdrawalErr } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('user_id', sessionUser.id)
+        .eq('type', 'withdrawal')
+        .neq('status', 'rejected') // Ignore rejected requests
+        .gte('created_at', oneDayAgo);
+
+      if (checkWithdrawalErr) {
+        console.error('Error checking recent withdrawals:', checkWithdrawalErr);
+      } else if (recentWithdrawals && recentWithdrawals.length > 0) {
+        setWithdrawError('Limite diário atingido. Você só pode realizar 1 solicitação de saque a cada 24 horas.');
+        return;
+      }
+    } catch (err) {
+      console.error('Failed to verify daily withdrawal limit:', err);
+    }
+
     if (isNaN(amt) || amt < 10) {
       setWithdrawError('O valor mínimo de saque é R$ 10,00');
       return;
@@ -1800,6 +1821,7 @@ export default function ColgateInvestApp() {
                   </p>
                   <p>• A taxa de saque é de <strong>12%</strong> sobre o valor solicitado.</p>
                   <p>• Para solicitar um saque é necessário ter um <strong>plano ativo</strong>.</p>
+                  <p>• Limite de saques: É permitido apenas <strong>1 saque a cada 24 horas</strong>.</p>
                   <p>• O valor do saque é creditado em até <strong>1 dia útil</strong>.</p>
                 </div>
 
