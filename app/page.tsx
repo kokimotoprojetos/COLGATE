@@ -264,41 +264,12 @@ export default function ColgateInvestApp() {
         setTempPixKey(profileData.pix_key || '');
         setTempPixType(profileData.pix_type || 'cpf');
 
-        // Fetch real referral network (Team members)
+        // Fetch real referral network via server-side API (bypasses RLS)
         try {
-          const { data: referrals, error: referralsError } = await supabase
-            .from('profiles')
-            .select('id, username, created_at')
-            .eq('referred_by', profileData.id_code);
-
-          if (referralsError) {
-            console.error('Error fetching referrals:', referralsError);
-          } else if (referrals && referrals.length > 0) {
-            const referralIds = referrals.map(r => r.id);
-            const { data: refPlansData, error: refPlansError } = await supabase
-              .from('active_plans')
-              .select('user_id, price')
-              .in('user_id', referralIds);
-
-            if (refPlansError) {
-              console.error('Error fetching referral active plans:', refPlansError);
-            }
-
-            const plansByUserId = (refPlansData || []).reduce((acc: Record<string, number>, curr) => {
-              acc[curr.user_id] = (acc[curr.user_id] || 0) + parseFloat(curr.price);
-              return acc;
-            }, {});
-
-            const formattedTeam: TeamMember[] = referrals.map(r => {
-              const totalInvested = plansByUserId[r.id] || 0;
-              return {
-                username: r.username,
-                registerDate: new Date(r.created_at).toLocaleDateString('pt-BR'),
-                status: totalInvested > 0 ? 'Ativo' : 'Pendente',
-                totalInvested
-              };
-            });
-            setTeamMembers(formattedTeam);
+          const res = await fetch(`/api/referrals?userId=${userId}`);
+          const data = await res.json();
+          if (res.ok && data.referrals) {
+            setTeamMembers(data.referrals as TeamMember[]);
           } else {
             setTeamMembers([]);
           }

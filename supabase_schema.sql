@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     pix_key TEXT DEFAULT '',
     pix_type TEXT DEFAULT 'cpf',
     id_code TEXT NOT NULL UNIQUE,
+    referred_by TEXT DEFAULT NULL,
+    referral_earnings NUMERIC(15, 2) DEFAULT 0.00,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
