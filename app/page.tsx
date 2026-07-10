@@ -207,11 +207,8 @@ export default function ColgateInvestApp() {
       } else {
         setSessionUser(session.user);
         await loadUserData(session.user.id);
-        // Show Telegram popup once per session
-        if (!sessionStorage.getItem('tg_popup_shown')) {
-          setTimeout(() => setShowTelegramPopup(true), 1200);
-          sessionStorage.setItem('tg_popup_shown', '1');
-        }
+        // Show Telegram popup on dashboard load (no sessionStorage lock)
+        setTimeout(() => setShowTelegramPopup(true), 1200);
       }
       setLoadingAuth(false);
     };
@@ -229,6 +226,7 @@ export default function ColgateInvestApp() {
       } else if (session) {
         setSessionUser(session.user);
         await loadUserData(session.user.id);
+        setTimeout(() => setShowTelegramPopup(true), 1200);
       }
     });
 
