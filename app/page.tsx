@@ -770,87 +770,65 @@ export default function ColgateInvestApp() {
 
     if (!sessionUser) return;
 
-    const newBalance = profile.balance - plan.price;
-    const updatedProfile = {
-      ...profile,
-      balance: newBalance
-    };
+    // Trigger loading toast or UI feedback if needed
+    try {
+      const response = await fetch('/api/buy-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: sessionUser.id,
+          planId: plan.id
+        })
+      });
 
-    // DB: Add active plan
-    const { data: planData, error: planError } = await supabase.from('active_plans').insert([
-      {
-        user_id: sessionUser.id,
-        plan_id: plan.id,
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao adquirir plano.');
+      }
+
+      const newPurchasedPlan: PurchasedPlan = {
+        id: data.planData.id,
+        planId: plan.id,
         name: plan.name,
         price: plan.price,
-        daily_income: plan.dailyIncome,
-        cycle_days: plan.cycleDays
-      }
-    ]).select().single();
+        dailyIncome: plan.dailyIncome,
+        cycleDays: plan.cycleDays,
+        purchasedAt: new Date(data.planData.purchased_at).toLocaleString('pt-BR'),
+        lastClaimedAt: data.planData.last_claimed_at,
+        earningsClaimed: 0,
+        earningsAccumulated: 0
+      };
 
-    if (planError) {
-      console.error('Error saving active plan:', planError);
-    }
-
-    // DB: Insert transaction
-    const { data: txData, error: txError } = await supabase.from('transactions').insert([
-      {
-        user_id: sessionUser.id,
+      const newTx: Transaction = {
+        id: data.transactionId || `tx-inv-${Date.now()}`,
         type: 'investment',
         amount: plan.price,
         status: 'completed',
+        date: new Date().toLocaleString('pt-BR'),
         details: `Compra do plano: ${plan.name}`
-      }
-    ]).select().single();
+      };
 
-    if (txError) {
-      console.error('Error saving investment transaction:', txError);
+      const updatedProfile = {
+        ...profile,
+        balance: data.balance
+      };
+
+      setProfile(updatedProfile);
+      setActivePlans([...activePlans, newPurchasedPlan]);
+      setTransactions([newTx, ...transactions]);
+
+      setShowBuyModal(null);
+      triggerToast(`Plano ${plan.name} ativado! Rendimentos começaram a ser gerados em tempo real.`, 'success');
+      
+      // Jump to home active plans list
+      setActiveTab('home');
+      setHomePlanFilter('meus');
+
+    } catch (err: any) {
+      console.error('Plan purchase failed:', err);
+      triggerToast(err.message || 'Erro ao processar compra do plano.', 'error');
     }
-
-    // DB: Update profile balance
-    const { error: profileError } = await supabase.from('profiles').update({
-      balance: newBalance
-    }).eq('id', sessionUser.id);
-
-    if (profileError) {
-      console.error('Error updating profile after plan purchase:', profileError);
-    }
-
-    const newPurchasedPlan: PurchasedPlan = {
-      id: planData?.id || `plan-active-${Date.now()}`,
-      planId: plan.id,
-      name: plan.name,
-      price: plan.price,
-      dailyIncome: plan.dailyIncome,
-      cycleDays: plan.cycleDays,
-      purchasedAt: new Date().toLocaleString('pt-BR'),
-      lastClaimedAt: new Date().toISOString(),
-      earningsClaimed: 0,
-      earningsAccumulated: 0
-    };
-
-    const newTx: Transaction = {
-      id: txData?.id || `tx-inv-${Date.now()}`,
-      type: 'investment',
-      amount: plan.price,
-      status: 'completed',
-      date: new Date().toLocaleString('pt-BR'),
-      details: `Compra do plano: ${plan.name}`
-    };
-
-    const updatedPlans = [...activePlans, newPurchasedPlan];
-    const updatedTxs = [newTx, ...transactions];
-
-    setProfile(updatedProfile);
-    setActivePlans(updatedPlans);
-    setTransactions(updatedTxs);
-
-    setShowBuyModal(null);
-    triggerToast(`Plano ${plan.name} ativado! Rendimentos começaram a ser gerados em tempo real.`, 'success');
-    
-    // Jump to home active plans list
-    setActiveTab('home');
-    setHomePlanFilter('meus');
   };
 
   // Clipboard copy function helper

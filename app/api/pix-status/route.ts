@@ -89,9 +89,6 @@ export async function GET(request: Request) {
             }
 
             console.log(`[POLLING STATUS] Completed deposit R$ ${tx.amount} for user ${tx.user_id} via polling`);
-
-            // 3. Distribute referral commissions
-            await distributeCommissions(supabaseAdmin, tx.user_id, Number(tx.amount));
           }
         }
       } catch (dbErr) {

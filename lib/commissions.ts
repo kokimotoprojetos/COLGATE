@@ -52,7 +52,7 @@ export async function distributeCommissions(
         type: 'commission',
         amount: l1Commission,
         status: 'completed',
-        details: `Comissão Nível 1 (23%) - Depósito de ${depositorUsername}`
+        details: `Comissão Nível 1 (23%) - Compra de Plano de ${depositorUsername}`
       }]);
 
       console.log(`[COMMISSIONS] Level 1 (23%) credited: R$ ${l1Commission} to user ${l1Profile.id}`);
@@ -81,7 +81,7 @@ export async function distributeCommissions(
             type: 'commission',
             amount: l2Commission,
             status: 'completed',
-            details: `Comissão Nível 2 (4%) - Depósito de ${depositorUsername}`
+            details: `Comissão Nível 2 (4%) - Compra de Plano de ${depositorUsername}`
           }]);
 
           console.log(`[COMMISSIONS] Level 2 (4%) credited: R$ ${l2Commission} to user ${l2Profile.id}`);
@@ -110,7 +110,7 @@ export async function distributeCommissions(
                 type: 'commission',
                 amount: l3Commission,
                 status: 'completed',
-                details: `Comissão Nível 3 (1%) - Depósito de ${depositorUsername}`
+                details: `Comissão Nível 3 (1%) - Compra de Plano de ${depositorUsername}`
               }]);
 
               console.log(`[COMMISSIONS] Level 3 (1%) credited: R$ ${l3Commission} to user ${l3Profile.id}`);
